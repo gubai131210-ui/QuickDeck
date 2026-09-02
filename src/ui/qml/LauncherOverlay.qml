@@ -124,7 +124,7 @@ Window {
 
                     delegate: ResultRow {
                         title: launcher.modeValue === 0 ? model.name : model.preview
-                        subtitle: launcher.modeValue === 0 ? model.path : ""
+                        subtitle: launcher.modeValue === 0 ? model.subtitle : ""
                         highlighted: ListView.isCurrentItem
                         onClicked: resultList.currentIndex = index
                     }

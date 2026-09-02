@@ -24,6 +24,7 @@ public:
 
     Result<void> initialize();
     void retranslate_ui();
+    void show_launch_failed(const QString &app_name, const QString &error_message);
 
 private:
     void build_menu();

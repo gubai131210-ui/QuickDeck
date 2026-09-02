@@ -6,8 +6,35 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QKeySequence>
+#include <QSet>
 
 namespace quickdeck {
+
+namespace {
+
+QList<AppEntry> merge_pinned_and_recent(const QList<AppEntry> &pinned,
+                                        const QList<AppEntry> &recent,
+                                        int limit)
+{
+    QList<AppEntry> merged = pinned;
+    QSet<qint64> seen;
+    for (const AppEntry &entry : pinned) {
+        seen.insert(entry.id);
+    }
+    for (const AppEntry &entry : recent) {
+        if (seen.contains(entry.id)) {
+            continue;
+        }
+        merged.append(entry);
+        seen.insert(entry.id);
+        if (merged.size() >= limit) {
+            break;
+        }
+    }
+    return merged;
+}
+
+} // namespace
 
 LauncherController::LauncherController(ApplicationContext &context, QObject *parent)
     : QObject(parent)
@@ -113,8 +140,11 @@ void LauncherController::refresh_results()
 {
     if (mode_ == LauncherMode::Search) {
         if (query_.trimmed().isEmpty()) {
-            const Result<QList<AppEntry>> recent = context_.database().apps().list_recent(5);
-            app_results_ = recent.is_ok() ? recent.value() : QList<AppEntry>{};
+            const Result<QList<AppEntry>> pinned = context_.database().apps().list_pinned();
+            const Result<QList<AppEntry>> recent = context_.database().apps().list_recent(10);
+            const QList<AppEntry> pinned_entries = pinned.is_ok() ? pinned.value() : QList<AppEntry>{};
+            const QList<AppEntry> recent_entries = recent.is_ok() ? recent.value() : QList<AppEntry>{};
+            app_results_ = merge_pinned_and_recent(pinned_entries, recent_entries, 10);
         } else if (PathResolver::looks_like_path(query_)) {
             app_results_.clear();
         } else {
@@ -153,7 +183,11 @@ void LauncherController::activate_selected(int index)
     if (mode_ == LauncherMode::Search) {
         if (index >= 0 && index < app_results_.size()) {
             const AppEntry &selected = app_results_.at(index);
-            context_.platform().launch_app(selected);
+            const Result<void> launch_result = context_.platform().launch_app(selected);
+            if (launch_result.is_err()) {
+                emit launchFailed(selected.name, launch_result.error());
+                return;
+            }
             if (selected.id > 0) {
                 context_.database().apps().record_usage(selected.id);
             }

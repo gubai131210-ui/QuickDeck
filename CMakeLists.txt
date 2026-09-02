@@ -29,6 +29,7 @@ set(QUICKDECK_CORE_SOURCES
     src/services/search_ranking.cpp
     src/services/search_service.cpp
     src/ui/launcher_controller.cpp
+    src/ui/app_display.cpp
     src/ui/models/app_search_model.cpp
     src/ui/models/clipboard_history_model.cpp
     src/ui/widgets/first_run_wizard.cpp
@@ -59,6 +60,7 @@ set(QUICKDECK_CORE_HEADERS
     src/services/search_ranking.h
     src/services/search_service.h
     src/ui/launcher_controller.h
+    src/ui/app_display.h
     src/ui/models/app_search_model.h
     src/ui/models/clipboard_history_model.h
     src/ui/widgets/first_run_wizard.h
@@ -134,6 +136,7 @@ qt_add_translations(QuickDeck
         translations/quickdeck_en.ts
         translations/quickdeck_zh_CN.ts
     SOURCE_TARGETS QuickDeckCore
+    QML_FILES ${QUICKDECK_QML_FILES}
     RESOURCE_PREFIX /i18n
 )
 

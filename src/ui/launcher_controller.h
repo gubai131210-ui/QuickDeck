@@ -53,6 +53,7 @@ signals:
     void itemCountChanged();
     void closeOnBlurChanged();
     void hideRequested();
+    void launchFailed(const QString &app_name, const QString &error_message);
 
 private:
     void refresh_results();

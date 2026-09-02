@@ -115,14 +115,11 @@ Result<void> WinPlatformServices::launch_app(const AppEntry &app, bool as_admin)
         return Result<void>::ok();
     }
 
-    QProcess process;
-    process.setProgram(executable);
+    QStringList arguments;
     if (!app.launch_args.isEmpty()) {
-        process.setArguments(app.launch_args.split(QLatin1Char(' ')));
+        arguments = app.launch_args.split(QLatin1Char(' '), Qt::SkipEmptyParts);
     }
-    if (!app.working_dir.isEmpty()) {
-        process.setWorkingDirectory(app.working_dir);
-    }
+    const QString working_dir = app.working_dir;
 
     if (as_admin) {
 #ifdef Q_OS_WIN
@@ -135,7 +132,14 @@ Result<void> WinPlatformServices::launch_app(const AppEntry &app, bool as_admin)
 #endif
     }
 
-    process.startDetached();
+    if (!QFileInfo::exists(executable)) {
+        return Result<void>::fail(QStringLiteral("Failed to launch: %1").arg(executable));
+    }
+
+    if (!QProcess::startDetached(executable, arguments,
+                                 working_dir.isEmpty() ? QString() : working_dir)) {
+        return Result<void>::fail(QStringLiteral("Failed to launch: %1").arg(executable));
+    }
     return Result<void>::ok();
 }
 

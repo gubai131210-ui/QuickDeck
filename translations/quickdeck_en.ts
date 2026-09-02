@@ -57,7 +57,7 @@
     </message>
 </context>
 <context>
-    <name>QObject</name>
+    <name>LauncherOverlay</name>
     <message>
         <source>Search apps or paste a path...</source>
         <translation>Search apps or paste a path...</translation>
@@ -112,6 +112,10 @@
     <message>
         <source>General</source>
         <translation>General</translation>
+    </message>
+    <message>
+        <source>Clipboard</source>
+        <translation>Clipboard</translation>
     </message>
     <message>
         <source>Language</source>
@@ -195,6 +199,25 @@
     <message>
         <source>Quit</source>
         <translation>Quit</translation>
+    </message>
+    <message>
+        <source>Launch Failed</source>
+        <translation>Launch Failed</translation>
+    </message>
+    <message>
+        <source>Could not launch %1: %2</source>
+        <translation>Could not launch %1: %2</translation>
+    </message>
+</context>
+<context>
+    <name>QDialogButtonBox</name>
+    <message>
+        <source>&amp;Yes</source>
+        <translation>&amp;Yes</translation>
+    </message>
+    <message>
+        <source>&amp;No</source>
+        <translation>&amp;No</translation>
     </message>
 </context>
 </TS>

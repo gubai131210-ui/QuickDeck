@@ -38,6 +38,8 @@ Result<void> Application::initialize()
 
     connect(&locale_, &LocaleService::language_changed, tray_.get(), &TrayManager::retranslate_ui);
     connect(&locale_, &LocaleService::language_changed, settings_.get(), &SettingsWindow::retranslate_ui);
+    connect(launcher_.get(), &LauncherController::launchFailed, tray_.get(),
+            &TrayManager::show_launch_failed);
 
     const Result<void> tray_result = tray_->initialize();
     if (tray_result.is_err()) {

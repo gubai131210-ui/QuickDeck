@@ -14,6 +14,7 @@ public:
         IdRole = Qt::UserRole + 1,
         NameRole,
         PathRole,
+        SubtitleRole,
         IconRole,
         IsPinnedRole
     };

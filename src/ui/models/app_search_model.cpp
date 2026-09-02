@@ -1,5 +1,7 @@
 #include "ui/models/app_search_model.h"
 
+#include "ui/app_display.h"
+
 namespace quickdeck {
 
 AppSearchModel::AppSearchModel(QObject *parent)
@@ -28,6 +30,8 @@ QVariant AppSearchModel::data(const QModelIndex &index, int role) const
         return entry.name;
     case PathRole:
         return entry.executable_path;
+    case SubtitleRole:
+        return app_entry_subtitle(entry);
     case IconRole:
         return entry.icon_cache_path;
     case IsPinnedRole:
@@ -43,6 +47,7 @@ QHash<int, QByteArray> AppSearchModel::roleNames() const
         {IdRole, "entryId"},
         {NameRole, "name"},
         {PathRole, "path"},
+        {SubtitleRole, "subtitle"},
         {IconRole, "iconPath"},
         {IsPinnedRole, "isPinned"},
     };

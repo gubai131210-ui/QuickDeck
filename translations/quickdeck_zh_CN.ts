@@ -57,7 +57,7 @@
     </message>
 </context>
 <context>
-    <name>QObject</name>
+    <name>LauncherOverlay</name>
     <message>
         <source>Search apps or paste a path...</source>
         <translation>搜索应用或粘贴路径…</translation>
@@ -112,6 +112,10 @@
     <message>
         <source>General</source>
         <translation>常规</translation>
+    </message>
+    <message>
+        <source>Clipboard</source>
+        <translation>剪贴板</translation>
     </message>
     <message>
         <source>Language</source>
@@ -195,6 +199,25 @@
     <message>
         <source>Quit</source>
         <translation>退出</translation>
+    </message>
+    <message>
+        <source>Launch Failed</source>
+        <translation>启动失败</translation>
+    </message>
+    <message>
+        <source>Could not launch %1: %2</source>
+        <translation>无法启动 %1：%2</translation>
+    </message>
+</context>
+<context>
+    <name>QDialogButtonBox</name>
+    <message>
+        <source>&amp;Yes</source>
+        <translation>是(&amp;Y)</translation>
+    </message>
+    <message>
+        <source>&amp;No</source>
+        <translation>否(&amp;N)</translation>
     </message>
 </context>
 </TS>

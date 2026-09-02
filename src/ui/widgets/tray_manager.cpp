@@ -69,4 +69,12 @@ void TrayManager::retranslate_ui()
     }
 }
 
+void TrayManager::show_launch_failed(const QString &app_name, const QString &error_message)
+{
+    tray_.showMessage(tr("Launch Failed"),
+                      tr("Could not launch %1: %2").arg(app_name, error_message),
+                      QSystemTrayIcon::Warning,
+                      5000);
+}
+
 } // namespace quickdeck
