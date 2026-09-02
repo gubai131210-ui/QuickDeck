@@ -2,13 +2,17 @@
 
 Cross-platform desktop launcher and clipboard history manager. **V1 targets Windows.**
 
+**Current status:** Phase 3 complete — launcher, clipboard, i18n (en/zh), icon cache, pin. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+
 ## Features (V1)
 
 - Application search and launch (Start Menu + Registry index)
-- Clipboard text history with FTS5 search
+- App icon cache, pin (`Ctrl+Shift+P`), usage-weighted search
+- Clipboard text history with FTS5 search and pin
 - Global hotkeys: `Alt+Space` (launcher), `Ctrl+Shift+V` (clipboard)
-- System tray with settings dialog
+- System tray with settings dialog (General / Hotkeys / Clipboard)
 - Path open: type `C:\path\to\file` or `~/path`
+- Languages: English, 简体中文
 
 ## Won't Do (V1)
 
@@ -19,10 +23,10 @@ See [docs/V1_SCOPE.md](docs/V1_SCOPE.md) for the full out-of-scope list.
 ```
 src/
 ├── app/        Application lifecycle, ApplicationContext
-├── core/       Domain types, Result, repository interfaces
+├── core/       Domain types, Result, interfaces, UserMessages
 ├── data/       SQLite, migrations, repository adapters
-├── platform/   IPlatformServices (win/ stub/)
-├── services/   Indexer, clipboard monitor, search
+├── platform/   IPlatformServices (win/ + stub/)
+├── services/   Indexer, scanner, icon cache, clipboard, search, locale
 └── ui/         Widgets settings/tray + QML launcher overlay
 ```
 
@@ -30,7 +34,13 @@ src/
 - **QuickDeckLauncher** — QML module
 - **QuickDeck** — executable
 
-Read [AGENTS.md](AGENTS.md) and [CONTEXT.md](CONTEXT.md) before contributing.
+| Doc | Purpose |
+|-----|---------|
+| [AGENTS.md](AGENTS.md) | Agent conventions |
+| [CONTEXT.md](CONTEXT.md) | Domain glossary |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, flows, debt |
+| [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | Phase checklist, tests |
+| [docs/AGENT_SKILLS.md](docs/AGENT_SKILLS.md) | Which skills to use |
 
 ## Database
 
@@ -43,14 +53,15 @@ Read [AGENTS.md](AGENTS.md) and [CONTEXT.md](CONTEXT.md) before contributing.
 Requirements: Qt 6.5+, CMake 3.19+, C++17 compiler.
 
 1. Open `CMakeLists.txt` in Qt Creator (Qt 6.11 MinGW kit)
-2. Configure and build **QuickDeck**
+2. **Run CMake** then build **QuickDeck**
 3. Run from Qt Creator (migrations copied next to exe on build)
 
 ## Tests
 
+10 automated tests. From build directory:
+
 ```powershell
-cd build
-ctest
+ctest --output-on-failure
 ```
 
 ## License
@@ -59,4 +70,4 @@ MIT — see [LICENSE](LICENSE)
 
 ## Repository
 
-GitHub: [gubai131210-ui/QuickDesk](https://github.com/gubai131210-ui/QuickDesk.git) (rename to QuickDeck planned)
+GitHub: [gubai131210-ui/QuickDeck](https://github.com/gubai131210-ui/QuickDeck.git)

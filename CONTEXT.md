@@ -47,3 +47,7 @@ Both modes share one overlay window; mode is determined by which hotkey opened i
 **History** — The ordered set of clipboard entries stored locally.
 
 **Settings** — User preferences stored as key-value pairs; not part of catalog or history.
+
+## Error Messages
+
+**Error Code** — Stable machine identifier (e.g. `launch.file_missing`) returned in `Result` and translated for UI via `UserMessages`. Log lines may retain technical detail; tray/dialog text uses codes only.

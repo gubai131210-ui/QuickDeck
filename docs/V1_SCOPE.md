@@ -32,8 +32,10 @@
 
 ## Development Phases
 
-1. Skeleton + DB + migrations
-2. Platform hotkeys + QML shell + tray
-3. App indexer + search + launch
-4. Clipboard monitor + FTS UI
-5. Settings + first-run + polish
+1. Skeleton + DB + migrations — **Done**
+2. Platform hotkeys + QML shell + tray — **Done** ([PHASE2.md](PHASE2.md))
+3. App indexer + search + launch + i18n/theme — **Done** ([PHASE3.md](PHASE3.md))
+4. Clipboard UX polish + simulated paste — Planned
+5. Settings polish + release packaging — Planned
+
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for feature-level checklist.

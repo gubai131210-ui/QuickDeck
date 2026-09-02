@@ -33,7 +33,7 @@
 
 ## Phase 3 Status
 
-**Phase 3 core + polish: complete.** Remaining items are V1.1 / nice-to-have.
+**Complete** (Iterations 1–4, 2026-09-02). See [PROJECT_STATUS.md](PROJECT_STATUS.md) for V1 checklist and next work.
 
 ---
 
