@@ -1,15 +1,26 @@
 #include "services/search_service.h"
 
-#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QtTest>
 
 class PathResolverTest : public QObject {
     Q_OBJECT
 
 private slots:
+    void initTestCase();
     void detects_windows_drive_paths();
     void resolves_home_relative_paths();
 };
+
+void PathResolverTest::initTestCase()
+{
+    static int argc = 1;
+    static char arg0[] = "path_resolver_test";
+    static char *argv[] = {arg0, nullptr};
+    if (QGuiApplication::instance() == nullptr) {
+        new QGuiApplication(argc, argv);
+    }
+}
 
 void PathResolverTest::detects_windows_drive_paths()
 {
@@ -19,11 +30,6 @@ void PathResolverTest::detects_windows_drive_paths()
 
 void PathResolverTest::resolves_home_relative_paths()
 {
-    static int argc = 1;
-    static char arg0[] = "test";
-    static char *argv[] = {arg0, nullptr};
-    QCoreApplication app(argc, argv);
-
     const quickdeck::Result<QString> resolved =
         quickdeck::PathResolver::resolve(QStringLiteral("~/"));
     QVERIFY(resolved.is_ok());

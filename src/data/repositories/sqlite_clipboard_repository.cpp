@@ -38,22 +38,29 @@ ClipboardEntry SqliteClipboardRepository::row_to_entry(const QSqlQuery &query) c
 Result<qint64> SqliteClipboardRepository::insert(const ClipboardEntry &entry)
 {
     const qint64 now = QDateTime::currentSecsSinceEpoch();
-    QSqlQuery query(db_);
-    query.prepare(QStringLiteral(
-        "INSERT INTO clipboard_entries "
-        "(content_type, content, preview, source_app, is_pinned, created_at, updated_at) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)"));
-    query.addBindValue(entry.content_type);
-    query.addBindValue(entry.content);
-    query.addBindValue(entry.preview.isEmpty() ? make_preview(entry.content) : entry.preview);
-    query.addBindValue(entry.source_app);
-    query.addBindValue(entry.is_pinned ? 1 : 0);
-    query.addBindValue(now);
-    query.addBindValue(now);
-    if (!query.exec()) {
-        return Result<qint64>::fail(query.lastError().text());
+    {
+        QSqlQuery query(db_);
+        query.prepare(QStringLiteral(
+            "INSERT INTO clipboard_entries "
+            "(content_type, content, preview, source_app, is_pinned, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)"));
+        query.addBindValue(entry.content_type);
+        query.addBindValue(entry.content);
+        query.addBindValue(entry.preview.isEmpty() ? make_preview(entry.content) : entry.preview);
+        query.addBindValue(entry.source_app);
+        query.addBindValue(entry.is_pinned ? 1 : 0);
+        query.addBindValue(now);
+        query.addBindValue(now);
+        if (!query.exec()) {
+            return Result<qint64>::fail(query.lastError().text());
+        }
     }
-    return Result<qint64>::ok(query.lastInsertId().toLongLong());
+
+    QSqlQuery id_query(db_);
+    if (!id_query.exec(QStringLiteral("SELECT last_insert_rowid()")) || !id_query.next()) {
+        return Result<qint64>::fail(id_query.lastError().text());
+    }
+    return Result<qint64>::ok(id_query.value(0).toLongLong());
 }
 
 Result<QList<ClipboardEntry>> SqliteClipboardRepository::list_recent(int limit, int offset)

@@ -1,10 +1,12 @@
 #include "ui/widgets/settings_window.h"
 
+#include "ui/launcher_controller.h"
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QKeySequenceEdit>
-#include <QLineEdit>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -12,9 +14,12 @@
 
 namespace quickdeck {
 
-SettingsWindow::SettingsWindow(ApplicationContext &context, QWidget *parent)
+SettingsWindow::SettingsWindow(ApplicationContext &context,
+                             LauncherController &launcher,
+                             QWidget *parent)
     : QDialog(parent)
     , context_(context)
+    , launcher_(launcher)
 {
     setWindowTitle(tr("QuickDeck Settings"));
     resize(480, 360);
@@ -28,32 +33,32 @@ void SettingsWindow::build_ui()
 
     auto *general_tab = new QWidget();
     auto *general_layout = new QFormLayout(general_tab);
-    auto *auto_start = new QCheckBox(tr("Start at login"));
-    auto *close_on_blur = new QCheckBox(tr("Close overlay when focus is lost"));
+    auto_start_ = new QCheckBox(tr("Start at login"));
+    close_on_blur_ = new QCheckBox(tr("Close overlay when focus is lost"));
     auto *refresh_button = new QPushButton(tr("Refresh application index"));
-    general_layout->addRow(auto_start);
-    general_layout->addRow(close_on_blur);
+    general_layout->addRow(auto_start_);
+    general_layout->addRow(close_on_blur_);
     general_layout->addRow(refresh_button);
     tabs_->addTab(general_tab, tr("General"));
 
     auto *hotkey_tab = new QWidget();
     auto *hotkey_layout = new QFormLayout(hotkey_tab);
-    auto *launcher_hotkey = new QKeySequenceEdit();
-    auto *clipboard_hotkey = new QKeySequenceEdit();
-    hotkey_layout->addRow(tr("Launcher hotkey"), launcher_hotkey);
-    hotkey_layout->addRow(tr("Clipboard hotkey"), clipboard_hotkey);
+    launcher_hotkey_ = new QKeySequenceEdit();
+    clipboard_hotkey_ = new QKeySequenceEdit();
+    hotkey_layout->addRow(tr("Launcher hotkey"), launcher_hotkey_);
+    hotkey_layout->addRow(tr("Clipboard hotkey"), clipboard_hotkey_);
     tabs_->addTab(hotkey_tab, tr("Hotkeys"));
 
     auto *clipboard_tab = new QWidget();
     auto *clipboard_layout = new QFormLayout(clipboard_tab);
-    auto *max_entries = new QSpinBox();
-    max_entries->setRange(10, 10000);
-    auto *max_chars = new QSpinBox();
-    max_chars->setRange(100, 1000000);
-    auto *monitoring_enabled = new QCheckBox(tr("Enable clipboard monitoring"));
-    clipboard_layout->addRow(tr("Max entries"), max_entries);
-    clipboard_layout->addRow(tr("Max characters"), max_chars);
-    clipboard_layout->addRow(monitoring_enabled);
+    max_entries_ = new QSpinBox();
+    max_entries_->setRange(10, 10000);
+    max_chars_ = new QSpinBox();
+    max_chars_->setRange(100, 1000000);
+    monitoring_enabled_ = new QCheckBox(tr("Enable clipboard monitoring"));
+    clipboard_layout->addRow(tr("Max entries"), max_entries_);
+    clipboard_layout->addRow(tr("Max characters"), max_chars_);
+    clipboard_layout->addRow(monitoring_enabled_);
     tabs_->addTab(clipboard_tab, tr("Clipboard"));
 
     auto *root = new QVBoxLayout(this);
@@ -68,72 +73,111 @@ void SettingsWindow::build_ui()
     root->addLayout(buttons);
 
     connect(save_button, &QPushButton::clicked, this, [this]() {
+        if (!validate_hotkeys()) {
+            return;
+        }
         save_values();
+        launcher_.reload_settings();
         accept();
     });
     connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
     connect(refresh_button, &QPushButton::clicked, this, [this]() {
-        context_.app_indexer().refresh_catalog();
+        const Result<int> result = context_.app_indexer().refresh_catalog();
+        if (result.is_err()) {
+            QMessageBox::warning(this, tr("Index Refresh"), result.error());
+        }
     });
+}
 
-    general_tab->setProperty("auto_start", QVariant::fromValue(auto_start));
-    general_tab->setProperty("close_on_blur", QVariant::fromValue(close_on_blur));
-    hotkey_tab->setProperty("launcher_hotkey", QVariant::fromValue(launcher_hotkey));
-    hotkey_tab->setProperty("clipboard_hotkey", QVariant::fromValue(clipboard_hotkey));
-    clipboard_tab->setProperty("max_entries", QVariant::fromValue(max_entries));
-    clipboard_tab->setProperty("max_chars", QVariant::fromValue(max_chars));
-    clipboard_tab->setProperty("monitoring_enabled", QVariant::fromValue(monitoring_enabled));
+bool SettingsWindow::validate_hotkeys() const
+{
+    ISettingsStore &store = context_.settings();
+    const QString stored_launcher =
+        store.get_string(QStringLiteral("launcher.hotkey"), QStringLiteral("Alt+Space")).value();
+    const QString stored_clipboard =
+        store.get_string(QStringLiteral("clipboard.hotkey"), QStringLiteral("Ctrl+Shift+V"))
+            .value();
+    const QString new_launcher =
+        launcher_hotkey_->keySequence().toString(QKeySequence::PortableText);
+    const QString new_clipboard =
+        clipboard_hotkey_->keySequence().toString(QKeySequence::PortableText);
+
+    auto needs_probe = [&](const QString &stored, const QString &updated) {
+        return stored != updated;
+    };
+
+    if (needs_probe(stored_launcher, new_launcher)) {
+        const Result<bool> launcher_ok =
+            context_.platform().is_hotkey_available(launcher_hotkey_->keySequence());
+        if (launcher_ok.is_err() || !launcher_ok.value()) {
+            const QMessageBox::StandardButton answer = QMessageBox::warning(
+                const_cast<SettingsWindow *>(this), tr("Hotkey Conflict"),
+                tr("Launcher shortcut appears unavailable. Save anyway?"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer != QMessageBox::Yes) {
+                return false;
+            }
+        }
+    }
+
+    if (needs_probe(stored_clipboard, new_clipboard)) {
+        const Result<bool> clipboard_ok =
+            context_.platform().is_hotkey_available(clipboard_hotkey_->keySequence());
+        if (clipboard_ok.is_err() || !clipboard_ok.value()) {
+            const QMessageBox::StandardButton answer = QMessageBox::warning(
+                const_cast<SettingsWindow *>(this), tr("Hotkey Conflict"),
+                tr("Clipboard shortcut appears unavailable. Save anyway?"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer != QMessageBox::Yes) {
+                return false;
+            }
+        }
+    }
+
+    if (new_launcher == new_clipboard) {
+        const QMessageBox::StandardButton answer = QMessageBox::warning(
+            const_cast<SettingsWindow *>(this), tr("Duplicate Hotkeys"),
+            tr("Launcher and clipboard shortcuts cannot be identical. Save anyway?"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        return answer == QMessageBox::Yes;
+    }
+
+    return true;
 }
 
 void SettingsWindow::load_values()
 {
     ISettingsStore &store = context_.settings();
-    const QWidget *general_tab = tabs_->widget(0);
-    const QWidget *hotkey_tab = tabs_->widget(1);
-    const QWidget *clipboard_tab = tabs_->widget(2);
-
-    general_tab->findChild<QCheckBox *>()->setChecked(
-        store.get_bool(QStringLiteral("general.auto_start"), false).value());
-    general_tab->findChildren<QCheckBox *>().at(1)->setChecked(
+    auto_start_->setChecked(store.get_bool(QStringLiteral("general.auto_start"), false).value());
+    close_on_blur_->setChecked(
         store.get_bool(QStringLiteral("general.close_on_blur"), true).value());
 
-    hotkey_tab->findChild<QKeySequenceEdit *>()->setKeySequence(QKeySequence(
+    launcher_hotkey_->setKeySequence(QKeySequence(
         store.get_string(QStringLiteral("launcher.hotkey"), QStringLiteral("Alt+Space")).value()));
-    hotkey_tab->findChildren<QKeySequenceEdit *>().at(1)->setKeySequence(QKeySequence(
+    clipboard_hotkey_->setKeySequence(QKeySequence(
         store.get_string(QStringLiteral("clipboard.hotkey"), QStringLiteral("Ctrl+Shift+V"))
             .value()));
 
-    clipboard_tab->findChild<QSpinBox *>()->setValue(
-        store.get_int(QStringLiteral("clipboard.max_entries"), 200).value());
-    clipboard_tab->findChildren<QSpinBox *>().at(1)->setValue(
-        store.get_int(QStringLiteral("clipboard.max_char_length"), 10000).value());
-    clipboard_tab->findChild<QCheckBox *>()->setChecked(
+    max_entries_->setValue(store.get_int(QStringLiteral("clipboard.max_entries"), 200).value());
+    max_chars_->setValue(store.get_int(QStringLiteral("clipboard.max_char_length"), 10000).value());
+    monitoring_enabled_->setChecked(
         store.get_bool(QStringLiteral("clipboard.monitoring_enabled"), true).value());
 }
 
 void SettingsWindow::save_values()
 {
     ISettingsStore &store = context_.settings();
-    const QWidget *general_tab = tabs_->widget(0);
-    const QWidget *hotkey_tab = tabs_->widget(1);
-    const QWidget *clipboard_tab = tabs_->widget(2);
-
-    store.set_bool(QStringLiteral("general.auto_start"),
-                   general_tab->findChild<QCheckBox *>()->isChecked());
-    store.set_bool(QStringLiteral("general.close_on_blur"),
-                   general_tab->findChildren<QCheckBox *>().at(1)->isChecked());
+    store.set_bool(QStringLiteral("general.auto_start"), auto_start_->isChecked());
+    store.set_bool(QStringLiteral("general.close_on_blur"), close_on_blur_->isChecked());
 
     store.set_string(QStringLiteral("launcher.hotkey"),
-                     hotkey_tab->findChild<QKeySequenceEdit *>()->keySequence().toString());
+                     launcher_hotkey_->keySequence().toString(QKeySequence::PortableText));
     store.set_string(QStringLiteral("clipboard.hotkey"),
-                     hotkey_tab->findChildren<QKeySequenceEdit *>().at(1)->keySequence().toString());
+                     clipboard_hotkey_->keySequence().toString(QKeySequence::PortableText));
 
-    store.set_int(QStringLiteral("clipboard.max_entries"),
-                  clipboard_tab->findChild<QSpinBox *>()->value());
-    store.set_int(QStringLiteral("clipboard.max_char_length"),
-                  clipboard_tab->findChildren<QSpinBox *>().at(1)->value());
-    store.set_bool(QStringLiteral("clipboard.monitoring_enabled"),
-                   clipboard_tab->findChild<QCheckBox *>()->isChecked());
+    store.set_int(QStringLiteral("clipboard.max_entries"), max_entries_->value());
+    store.set_int(QStringLiteral("clipboard.max_char_length"), max_chars_->value());
+    store.set_bool(QStringLiteral("clipboard.monitoring_enabled"), monitoring_enabled_->isChecked());
 
     context_.platform().set_auto_start_enabled(
         store.get_bool(QStringLiteral("general.auto_start"), false).value());

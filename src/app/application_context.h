@@ -19,7 +19,7 @@ public:
     ApplicationContext();
     ~ApplicationContext();
 
-    [[nodiscard]] Result<void> initialize();
+    [[nodiscard]] Result<void> initialize(const QString &database_path = QString());
 
     [[nodiscard]] DatabaseManager &database();
     [[nodiscard]] IPlatformServices &platform();

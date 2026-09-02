@@ -12,6 +12,25 @@ Window {
     x: (Screen.width - width) / 2
     y: Screen.height * 0.2
 
+    property bool blurGraceActive: false
+
+    opacity: chrome.opacityValue
+    scale: chrome.scaleValue
+
+    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+
+    QtObject {
+        id: chrome
+        property real opacityValue: launcher.visible ? 1.0 : 0.0
+        property real scaleValue: launcher.visible ? 1.0 : 0.96
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Cancel]
+        onActivated: launcher.dismiss()
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: 12
@@ -26,10 +45,22 @@ Window {
             TextField {
                 id: searchField
                 Layout.fillWidth: true
-                placeholderText: launcher.modeValue === 0 ? qsTr("Search apps or paste a path...") : qsTr("Filter clipboard history...")
+                placeholderText: launcher.modeValue === 0
+                    ? qsTr("Search apps or paste a path...")
+                    : qsTr("Filter clipboard history...")
                 text: launcher.query
                 onTextChanged: launcher.query = text
-                Component.onCompleted: forceActiveFocus()
+
+                Keys.onUpPressed: function(event) {
+                    event.accepted = true
+                    launcher.moveSelection(-1)
+                }
+                Keys.onDownPressed: function(event) {
+                    event.accepted = true
+                    launcher.moveSelection(1)
+                }
+                Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex)
+                Keys.onEscapePressed: launcher.dismiss()
             }
 
             Label {
@@ -43,8 +74,16 @@ Window {
                 Layout.fillHeight: true
                 clip: true
                 model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
+                currentIndex: launcher.selectedIndex
+                onCurrentIndexChanged: launcher.selectedIndex = currentIndex
+                highlight: Rectangle {
+                    color: Qt.rgba(1, 1, 1, 0.08)
+                    radius: 6
+                }
+                highlightMoveDuration: 80
                 delegate: ItemDelegate {
                     width: resultList.width
+                    highlighted: ListView.isCurrentItem
                     contentItem: Column {
                         spacing: 2
                         Label {
@@ -64,18 +103,56 @@ Window {
                     }
                     onClicked: resultList.currentIndex = index
                 }
-                Keys.onReturnPressed: launcher.activate_selected(currentIndex)
             }
         }
+    }
+
+    Timer {
+        id: blurGraceTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.blurGraceActive = false
     }
 
     Connections {
         target: launcher
         function onVisibleChanged() {
             if (launcher.visible) {
+                chrome.opacityValue = 1.0
+                chrome.scaleValue = 1.0
                 searchField.text = launcher.query
+                root.requestActivate()
                 searchField.forceActiveFocus()
+                resultList.currentIndex = launcher.selectedIndex
+                root.blurGraceActive = true
+                blurGraceTimer.restart()
+            } else {
+                chrome.opacityValue = 0.0
+                chrome.scaleValue = 0.96
             }
+        }
+
+        function onHideRequested() {
+            chrome.opacityValue = 0.0
+            chrome.scaleValue = 0.96
+            hideTimer.restart()
+        }
+
+        function onSelectedIndexChanged() {
+            resultList.currentIndex = launcher.selectedIndex
+        }
+    }
+
+    Timer {
+        id: hideTimer
+        interval: 150
+        repeat: false
+        onTriggered: launcher.confirmHide()
+    }
+
+    onActiveChanged: {
+        if (!active && launcher.visible && launcher.closeOnBlur && !blurGraceActive) {
+            launcher.dismiss()
         }
     }
 }

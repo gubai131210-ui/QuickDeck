@@ -21,6 +21,10 @@ DatabaseManager::DatabaseManager(QObject *parent)
 
 DatabaseManager::~DatabaseManager()
 {
+    settings_repo_.reset();
+    clipboard_repo_.reset();
+    app_repo_.reset();
+
     if (QSqlDatabase::contains(connection_name_)) {
         db_.close();
         QSqlDatabase::removeDatabase(connection_name_);
@@ -50,9 +54,14 @@ Result<void> DatabaseManager::open(const QString &database_path,
         return Result<void>::fail(db_.lastError().text());
     }
 
-    QSqlQuery pragma(db_);
-    pragma.exec(QStringLiteral("PRAGMA foreign_keys = ON"));
-    pragma.exec(QStringLiteral("PRAGMA journal_mode = WAL"));
+    {
+        QSqlQuery query(db_);
+        query.exec(QStringLiteral("PRAGMA foreign_keys = ON"));
+    }
+    {
+        QSqlQuery query(db_);
+        query.exec(QStringLiteral("PRAGMA journal_mode = WAL"));
+    }
 
     const Result<void> migration_result = MigrationRunner::apply_all(db_, migrations_dir);
     if (migration_result.is_err()) {

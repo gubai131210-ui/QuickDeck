@@ -2,10 +2,15 @@
 
 #include "core/interfaces/i_platform_services.h"
 
+#include <QHash>
+#include <QSet>
+
 namespace quickdeck {
 
 class StubPlatformServices final : public IPlatformServices {
 public:
+    void block_hotkey(const QKeySequence &sequence);
+
     Result<void> register_hotkey(const QString &id,
                                  const QKeySequence &sequence,
                                  std::function<void()> callback) override;
@@ -22,6 +27,14 @@ public:
     Result<bool> is_auto_start_enabled() override;
 
     QString platform_id() const override;
+
+    [[nodiscard]] QHash<QString, QKeySequence> registered_hotkeys() const;
+
+private:
+    QHash<QString, QKeySequence> registered_;
+    QHash<QString, std::function<void()>> callbacks_;
+    QSet<QString> blocked_;
+    bool auto_start_ = false;
 };
 
 } // namespace quickdeck

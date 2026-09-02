@@ -7,6 +7,7 @@
 
 #include <QObject>
 #include <QQmlApplicationEngine>
+#include <QQuickWindow>
 #include <memory>
 
 namespace quickdeck {
@@ -26,6 +27,7 @@ private:
     std::unique_ptr<SettingsWindow> settings_;
     std::unique_ptr<TrayManager> tray_;
     QQmlApplicationEngine qml_engine_;
+    QQuickWindow *overlay_window_ = nullptr;
 };
 
 } // namespace quickdeck

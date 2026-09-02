@@ -1,9 +1,13 @@
 #include "platform/win/win_platform_services.h"
 
+#include "platform/win/win_hotkey_mapper.h"
+#include "services/logger.h"
+
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
+#include <QMetaObject>
 #include <QProcess>
 #include <QSettings>
 #include <QUrl>
@@ -21,8 +25,9 @@ WinPlatformServices::WinPlatformServices()
 
 WinPlatformServices::~WinPlatformServices()
 {
-    for (auto it = hotkeys_.begin(); it != hotkeys_.end(); ++it) {
-        unregister_hotkey(it.key());
+    const QStringList ids = hotkeys_.keys();
+    for (const QString &id : ids) {
+        unregister_hotkey(id);
     }
     QCoreApplication::instance()->removeNativeEventFilter(this);
 }
@@ -36,13 +41,24 @@ Result<void> WinPlatformServices::register_hotkey(const QString &id,
         unregister_hotkey(id);
     }
 
-    const int native_id = next_hotkey_id_++;
-    const UINT modifiers = MOD_NOREPEAT;
-    const UINT vk = sequence[0].key();
-
-    if (!RegisterHotKey(nullptr, native_id, modifiers, vk)) {
-        return Result<void>::fail(QStringLiteral("Failed to register hotkey: %1").arg(id));
+    const Result<WinHotkeyParts> parts = parse_qkey_sequence(sequence);
+    if (parts.is_err()) {
+        return Result<void>::fail(parts.error());
     }
+
+    const int native_id = next_hotkey_id_++;
+    if (!RegisterHotKey(nullptr, native_id, parts.value().modifiers, parts.value().vk)) {
+        const DWORD error = GetLastError();
+        return Result<void>::fail(
+            QStringLiteral("Failed to register hotkey %1 (Win32 error %2)")
+                .arg(id)
+                .arg(error));
+    }
+
+    QD_LOG_INFO(QStringLiteral("Hotkey registered: %1 %2 mods=0x%3 vk=0x%4")
+                    .arg(id, sequence.toString(QKeySequence::PortableText))
+                    .arg(parts.value().modifiers, 0, 16)
+                    .arg(parts.value().vk, 0, 16));
 
     hotkeys_.insert(id, HotkeyEntry{native_id, std::move(callback)});
     native_id_to_key_.insert(native_id, id);
@@ -74,10 +90,15 @@ Result<void> WinPlatformServices::unregister_hotkey(const QString &id)
 Result<bool> WinPlatformServices::is_hotkey_available(const QKeySequence &sequence)
 {
 #ifdef Q_OS_WIN
-    const int native_id = next_hotkey_id_;
-    const bool ok = RegisterHotKey(nullptr, native_id, MOD_NOREPEAT, sequence[0].key());
+    const Result<WinHotkeyParts> parts = parse_qkey_sequence(sequence);
+    if (parts.is_err()) {
+        return Result<bool>::fail(parts.error());
+    }
+
+    const int probe_id = next_hotkey_id_;
+    const bool ok = RegisterHotKey(nullptr, probe_id, parts.value().modifiers, parts.value().vk);
     if (ok) {
-        UnregisterHotKey(nullptr, native_id);
+        UnregisterHotKey(nullptr, probe_id);
     }
     return Result<bool>::ok(ok);
 #else
@@ -147,7 +168,7 @@ Result<void> WinPlatformServices::simulate_paste()
     inputs[0].type = INPUT_KEYBOARD;
     inputs[0].ki.wVk = VK_CONTROL;
     inputs[1].type = INPUT_KEYBOARD;
-    inputs[1].ki.wVk = 0x56; // V
+    inputs[1].ki.wVk = 0x56;
     inputs[2].type = INPUT_KEYBOARD;
     inputs[2].ki.wVk = 0x56;
     inputs[2].ki.dwFlags = KEYEVENTF_KEYUP;
@@ -187,18 +208,22 @@ QString WinPlatformServices::platform_id() const
 }
 
 bool WinPlatformServices::nativeEventFilter(const QByteArray &event_type,
-                                             void *message,
-                                             qintptr *result)
+                                            void *message,
+                                            qintptr *result)
 {
 #ifdef Q_OS_WIN
-    if (event_type == "windows_generic_MSG" || event_type == "windows_dispatcher_MSG") {
+    if (event_type == "windows_dispatcher_MSG" || event_type == "windows_generic_MSG") {
         MSG *msg = static_cast<MSG *>(message);
         if (msg->message == WM_HOTKEY) {
             const int native_id = static_cast<int>(msg->wParam);
             if (native_id_to_key_.contains(native_id)) {
                 const QString key = native_id_to_key_.value(native_id);
                 if (hotkeys_.contains(key) && hotkeys_.value(key).callback) {
-                    hotkeys_.value(key).callback();
+                    const std::function<void()> callback = hotkeys_.value(key).callback;
+                    QMetaObject::invokeMethod(
+                        QCoreApplication::instance(),
+                        [callback]() { callback(); },
+                        Qt::QueuedConnection);
                 }
                 if (result != nullptr) {
                     *result = 0;

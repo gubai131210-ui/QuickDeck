@@ -8,6 +8,8 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Quick Qml Sql Test)
 
 qt_standard_project_setup()
 
+string(REPLACE "\\" "/" QUICKDECK_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
+
 set(QUICKDECK_CORE_SOURCES
     src/app/application.cpp
     src/app/application_context.cpp
@@ -18,6 +20,7 @@ set(QUICKDECK_CORE_SOURCES
     src/data/repositories/sqlite_settings_store.cpp
     src/platform/platform_factory.cpp
     src/platform/stub/stub_platform_services.cpp
+    src/platform/win/win_hotkey_mapper.cpp
     src/platform/win/win_platform_services.cpp
     src/services/app_indexer.cpp
     src/services/clipboard_monitor.cpp
@@ -27,6 +30,7 @@ set(QUICKDECK_CORE_SOURCES
     src/ui/launcher_controller.cpp
     src/ui/models/app_search_model.cpp
     src/ui/models/clipboard_history_model.cpp
+    src/ui/widgets/first_run_wizard.cpp
     src/ui/widgets/settings_window.cpp
     src/ui/widgets/tray_manager.cpp
 )
@@ -45,6 +49,7 @@ set(QUICKDECK_CORE_HEADERS
     src/data/repositories/sqlite_settings_store.h
     src/platform/platform_factory.h
     src/platform/stub/stub_platform_services.h
+    src/platform/win/win_hotkey_mapper.h
     src/platform/win/win_platform_services.h
     src/services/app_indexer.h
     src/services/clipboard_monitor.h
@@ -54,6 +59,7 @@ set(QUICKDECK_CORE_HEADERS
     src/ui/launcher_controller.h
     src/ui/models/app_search_model.h
     src/ui/models/clipboard_history_model.h
+    src/ui/widgets/first_run_wizard.h
     src/ui/widgets/settings_window.h
     src/ui/widgets/tray_manager.h
 )
@@ -67,7 +73,7 @@ target_include_directories(QuickDeckCore PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_compile_definitions(QuickDeckCore PRIVATE QUICKDECK_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+target_compile_definitions(QuickDeckCore PRIVATE "QUICKDECK_SOURCE_DIR=\"${QUICKDECK_SOURCE_DIR}\"")
 
 target_link_libraries(QuickDeckCore
     PUBLIC

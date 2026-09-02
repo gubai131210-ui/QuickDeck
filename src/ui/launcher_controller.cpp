@@ -1,5 +1,6 @@
 #include "ui/launcher_controller.h"
 
+#include "services/logger.h"
 #include "services/search_service.h"
 
 #include <QApplication>
@@ -12,6 +13,17 @@ LauncherController::LauncherController(ApplicationContext &context, QObject *par
     : QObject(parent)
     , context_(context)
 {
+    load_runtime_settings();
+}
+
+void LauncherController::load_runtime_settings()
+{
+    const Result<bool> close_on_blur =
+        context_.settings().get_bool(QStringLiteral("general.close_on_blur"), true);
+    if (close_on_blur.is_ok() && close_on_blur_ != close_on_blur.value()) {
+        close_on_blur_ = close_on_blur.value();
+        emit closeOnBlurChanged();
+    }
 }
 
 void LauncherController::setQuery(const QString &query)
@@ -21,7 +33,18 @@ void LauncherController::setQuery(const QString &query)
     }
     query_ = query;
     emit queryChanged();
+    set_selected_index(0);
     refresh_results();
+}
+
+void LauncherController::set_selected_index(int index)
+{
+    const int clamped = item_count_ > 0 ? qBound(0, index, item_count_ - 1) : 0;
+    if (selected_index_ == clamped) {
+        return;
+    }
+    selected_index_ = clamped;
+    emit selectedIndexChanged();
 }
 
 void LauncherController::show_search()
@@ -29,9 +52,11 @@ void LauncherController::show_search()
     mode_ = LauncherMode::Search;
     query_.clear();
     visible_ = true;
+    selected_index_ = 0;
     emit modeChanged();
     emit visibleChanged();
     emit queryChanged();
+    emit selectedIndexChanged();
     refresh_results();
 }
 
@@ -40,19 +65,48 @@ void LauncherController::show_clipboard()
     mode_ = LauncherMode::Clipboard;
     query_.clear();
     visible_ = true;
+    selected_index_ = 0;
     emit modeChanged();
     emit visibleChanged();
     emit queryChanged();
+    emit selectedIndexChanged();
     refresh_results();
 }
 
 void LauncherController::hide()
+{
+    confirm_hide();
+}
+
+void LauncherController::dismiss()
+{
+    if (!visible_) {
+        return;
+    }
+    emit hideRequested();
+}
+
+void LauncherController::confirm_hide()
 {
     if (!visible_) {
         return;
     }
     visible_ = false;
     emit visibleChanged();
+}
+
+void LauncherController::move_selection(int delta)
+{
+    if (item_count_ <= 0 || delta == 0) {
+        return;
+    }
+    int next = selected_index_ + delta;
+    if (next < 0) {
+        next = item_count_ - 1;
+    } else if (next >= item_count_) {
+        next = 0;
+    }
+    set_selected_index(next);
 }
 
 void LauncherController::refresh_results()
@@ -69,6 +123,7 @@ void LauncherController::refresh_results()
             app_results_ = results.is_ok() ? results.value() : QList<AppEntry>{};
         }
         app_model_.set_entries(app_results_);
+        update_item_count();
         return;
     }
 
@@ -76,6 +131,21 @@ void LauncherController::refresh_results()
         context_.search_service().search_clipboard(query_, 50);
     clipboard_results_ = results.is_ok() ? results.value() : QList<ClipboardEntry>{};
     clipboard_model_.set_entries(clipboard_results_);
+    update_item_count();
+}
+
+void LauncherController::update_item_count()
+{
+    const int count =
+        mode_ == LauncherMode::Search ? app_model_.rowCount() : clipboard_model_.rowCount();
+    if (item_count_ == count) {
+        return;
+    }
+    item_count_ = count;
+    emit itemCountChanged();
+    if (selected_index_ >= item_count_) {
+        set_selected_index(item_count_ > 0 ? item_count_ - 1 : 0);
+    }
 }
 
 void LauncherController::activate_selected(int index)
@@ -87,14 +157,14 @@ void LauncherController::activate_selected(int index)
             if (selected.id > 0) {
                 context_.database().apps().record_usage(selected.id);
             }
-            hide();
+            dismiss();
             return;
         }
         if (PathResolver::looks_like_path(query_)) {
             const Result<QString> resolved = PathResolver::resolve(query_);
             if (resolved.is_ok()) {
                 context_.platform().open_path(resolved.value());
-                hide();
+                dismiss();
             }
         }
         return;
@@ -106,7 +176,13 @@ void LauncherController::activate_selected(int index)
 
     context_.clipboard_monitor().set_suppress_next_change(true);
     QApplication::clipboard()->setText(clipboard_results_.at(index).content);
-    hide();
+    dismiss();
+}
+
+void LauncherController::reload_settings()
+{
+    load_runtime_settings();
+    setup_hotkeys();
 }
 
 void LauncherController::register_hotkeys()
@@ -116,20 +192,29 @@ void LauncherController::register_hotkeys()
 
 void LauncherController::setup_hotkeys()
 {
+    context_.platform().unregister_hotkey(QStringLiteral("launcher"));
+    context_.platform().unregister_hotkey(QStringLiteral("clipboard"));
+
     const Result<QString> launcher_hotkey =
         context_.settings().get_string(QStringLiteral("launcher.hotkey"), QStringLiteral("Alt+Space"));
     const Result<QString> clipboard_hotkey = context_.settings().get_string(
         QStringLiteral("clipboard.hotkey"), QStringLiteral("Ctrl+Shift+V"));
 
     if (launcher_hotkey.is_ok()) {
-        context_.platform().register_hotkey(
+        const Result<void> result = context_.platform().register_hotkey(
             QStringLiteral("launcher"), QKeySequence(launcher_hotkey.value()),
             [this]() { show_search(); });
+        if (result.is_err()) {
+            QD_LOG_WARN(result.error());
+        }
     }
     if (clipboard_hotkey.is_ok()) {
-        context_.platform().register_hotkey(
+        const Result<void> result = context_.platform().register_hotkey(
             QStringLiteral("clipboard"), QKeySequence(clipboard_hotkey.value()),
             [this]() { show_clipboard(); });
+        if (result.is_err()) {
+            QD_LOG_WARN(result.error());
+        }
     }
 }
 

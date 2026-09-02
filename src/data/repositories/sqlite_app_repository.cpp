@@ -155,8 +155,8 @@ Result<QList<AppEntry>> SqliteAppRepository::list_recent(int limit)
         "SELECT a.*, COALESCE(u.launch_count, 0) AS launch_count, "
         "COALESCE(u.last_used_at, 0) AS last_used_at "
         "FROM apps a "
-        "INNER JOIN usage_stats u ON u.entity_type = 'app' AND u.entity_id = a.id "
-        "ORDER BY u.last_used_at DESC LIMIT ?"));
+        "LEFT JOIN usage_stats u ON u.entity_type = 'app' AND u.entity_id = a.id "
+        "ORDER BY u.last_used_at DESC, a.indexed_at DESC LIMIT ?"));
     query.addBindValue(limit);
     if (!query.exec()) {
         return Result<QList<AppEntry>>::fail(query.lastError().text());

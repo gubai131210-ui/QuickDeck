@@ -16,7 +16,7 @@ ApplicationContext::ApplicationContext() = default;
 
 ApplicationContext::~ApplicationContext() = default;
 
-Result<void> ApplicationContext::initialize()
+Result<void> ApplicationContext::initialize(const QString &database_path)
 {
     database_ = std::make_unique<DatabaseManager>();
     platform_ = create_platform_services();
@@ -34,8 +34,10 @@ Result<void> ApplicationContext::initialize()
         return candidates.last();
     }();
 
-    const Result<void> open_result =
-        database_->open(DatabaseManager::default_database_path(), migration_path);
+    const QString db_path =
+        database_path.isEmpty() ? DatabaseManager::default_database_path() : database_path;
+
+    const Result<void> open_result = database_->open(db_path, migration_path);
     if (open_result.is_err()) {
         QD_LOG_ERROR(open_result.error());
         return open_result;
