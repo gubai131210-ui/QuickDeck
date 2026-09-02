@@ -158,10 +158,17 @@ void LauncherController::toggle_pin_at(int index)
         return;
     }
 
+    const qint64 entry_id = entry.id;
     refresh_results();
-    if (selected_index_ != index && index < item_count_) {
-        set_selected_index(index);
+
+    int restored_index = 0;
+    for (int i = 0; i < app_results_.size(); ++i) {
+        if (app_results_.at(i).id == entry_id) {
+            restored_index = i;
+            break;
+        }
     }
+    set_selected_index(restored_index);
 }
 
 void LauncherController::refresh_results()

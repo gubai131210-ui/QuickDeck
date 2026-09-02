@@ -201,6 +201,10 @@
         <translation>退出</translation>
     </message>
     <message>
+        <source>Index Refresh</source>
+        <translation>索引刷新</translation>
+    </message>
+    <message>
         <source>Launch Failed</source>
         <translation>启动失败</translation>
     </message>

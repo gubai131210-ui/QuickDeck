@@ -201,6 +201,10 @@
         <translation>Quit</translation>
     </message>
     <message>
+        <source>Index Refresh</source>
+        <translation>Index Refresh</translation>
+    </message>
+    <message>
         <source>Launch Failed</source>
         <translation>Launch Failed</translation>
     </message>
