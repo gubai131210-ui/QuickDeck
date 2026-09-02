@@ -17,6 +17,7 @@ set(QUICKDECK_CORE_SOURCES
     src/data/migration_runner.cpp
     src/core/user_messages.cpp
     src/core/search_ranking.cpp
+    src/core/command_router.cpp
     src/data/repositories/sqlite_app_repository.cpp
     src/data/repositories/sqlite_clipboard_repository.cpp
     src/data/repositories/sqlite_settings_store.cpp
@@ -32,11 +33,12 @@ set(QUICKDECK_CORE_SOURCES
     src/services/logger.cpp
     src/services/search_service.cpp
     src/ui/launcher_controller.cpp
+    src/ui/models/command_search_model.cpp
+    src/ui/settings_controller.cpp
     src/ui/app_display.cpp
     src/ui/models/app_search_model.cpp
     src/ui/models/clipboard_history_model.cpp
     src/ui/widgets/first_run_wizard.cpp
-    src/ui/widgets/settings_window.cpp
     src/ui/widgets/tray_manager.cpp
 )
 
@@ -49,6 +51,7 @@ set(QUICKDECK_CORE_HEADERS
     src/core/result.h
     src/core/user_messages.h
     src/core/search_ranking.h
+    src/core/command_router.h
     src/data/database_manager.h
     src/data/migration_runner.h
     src/data/repositories/sqlite_app_repository.h
@@ -66,11 +69,12 @@ set(QUICKDECK_CORE_HEADERS
     src/services/logger.h
     src/services/search_service.h
     src/ui/launcher_controller.h
+    src/ui/models/command_search_model.h
+    src/ui/settings_controller.h
     src/ui/app_display.h
     src/ui/models/app_search_model.h
     src/ui/models/clipboard_history_model.h
     src/ui/widgets/first_run_wizard.h
-    src/ui/widgets/settings_window.h
     src/ui/widgets/tray_manager.h
 )
 
@@ -107,10 +111,14 @@ endif()
 
 set(QUICKDECK_QML_FILES
     src/ui/qml/LauncherOverlay.qml
+    src/ui/qml/SettingsOverlay.qml
     src/ui/qml/theme/QuickDeckTheme.qml
     src/ui/qml/components/GlassPanel.qml
     src/ui/qml/components/SearchField.qml
     src/ui/qml/components/ResultRow.qml
+    src/ui/qml/components/ModeSwitcher.qml
+    src/ui/qml/pages/SearchPage.qml
+    src/ui/qml/pages/ClipboardPage.qml
 )
 
 set_source_files_properties(

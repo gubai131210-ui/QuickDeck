@@ -23,12 +23,15 @@ Result<void> Application::initialize()
 {
     QCoreApplication::setApplicationName(QStringLiteral("QuickDeck"));
     QCoreApplication::setOrganizationName(QStringLiteral("QuickDeck"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.6.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.7.0"));
 
     const Result<void> init_result = context_.initialize();
     if (init_result.is_err()) {
         return init_result;
     }
+
+    Logger::instance().set_debug_enabled(
+        context_.settings().get_bool(QStringLiteral("general.debug_log"), false).value());
 
     const Result<void> locale_result = locale_.apply_saved_language(context_.settings());
     if (locale_result.is_err()) {
@@ -36,15 +39,19 @@ Result<void> Application::initialize()
     }
 
     launcher_ = std::make_unique<LauncherController>(context_);
-    settings_ = std::make_unique<SettingsWindow>(context_, *launcher_, locale_, qml_engine_);
+    settings_ = std::make_unique<SettingsController>(context_, *launcher_, locale_, qml_engine_);
+    launcher_->set_settings_controller(settings_.get());
+    launcher_->set_locale_service(&locale_);
+    launcher_->set_qml_engine(&qml_engine_);
     tray_ = std::make_unique<TrayManager>(context_, *launcher_, *settings_);
 
     connect(&locale_, &LocaleService::language_changed, tray_.get(), &TrayManager::retranslate_ui);
-    connect(&locale_, &LocaleService::language_changed, settings_.get(), &SettingsWindow::retranslate_ui);
     connect(launcher_.get(), &LauncherController::launchFailed, tray_.get(),
             &TrayManager::show_launch_failed);
     connect(launcher_.get(), &LauncherController::quickPasteFailed, tray_.get(),
             &TrayManager::show_quick_paste_failed);
+    connect(launcher_.get(), &LauncherController::hotkeyRegistrationFailed, tray_.get(),
+            &TrayManager::show_hotkey_registration_failed);
 
     const Result<void> tray_result = tray_->initialize();
     if (tray_result.is_err()) {
@@ -54,16 +61,35 @@ Result<void> Application::initialize()
     QQuickStyle::setStyle(QStringLiteral("Basic"));
 
     qml_engine_.rootContext()->setContextProperty(QStringLiteral("launcher"), launcher_.get());
+    qml_engine_.rootContext()->setContextProperty(QStringLiteral("settings"), settings_.get());
     qml_engine_.loadFromModule(QStringLiteral("QuickDeckLauncher"), QStringLiteral("LauncherOverlay"));
+    qml_engine_.loadFromModule(QStringLiteral("QuickDeckLauncher"), QStringLiteral("SettingsOverlay"));
 
-    if (qml_engine_.rootObjects().isEmpty()) {
+    const QList<QObject *> roots = qml_engine_.rootObjects();
+    for (QObject *root : roots) {
+        auto *window = qobject_cast<QQuickWindow *>(root);
+        if (window == nullptr) {
+            continue;
+        }
+        if (window->objectName() == QStringLiteral("settingsOverlay")) {
+            settings_window_ = window;
+        } else if (window->objectName() == QStringLiteral("launcherOverlay")) {
+            overlay_window_ = window;
+        }
+    }
+
+    if (overlay_window_ == nullptr) {
         return Result<void>::fail(QStringLiteral("Failed to load launcher overlay QML"));
     }
 
-    overlay_window_ = qobject_cast<QQuickWindow *>(qml_engine_.rootObjects().first());
     connect(launcher_.get(), &LauncherController::visibleChanged, this, [this]() {
         if (overlay_window_ != nullptr && launcher_->visible()) {
             overlay_window_->requestActivate();
+        }
+    });
+    connect(settings_.get(), &SettingsController::visibleChanged, this, [this]() {
+        if (settings_window_ != nullptr && settings_->visible()) {
+            settings_window_->requestActivate();
         }
     });
 

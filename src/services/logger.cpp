@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QStandardPaths>
 #include <QTextStream>
 
@@ -54,6 +55,13 @@ void Logger::write_to_file(const QString &line)
     QDir().mkpath(log_dir);
 
     const QString log_path = log_dir + QStringLiteral("/quickdeck.log");
+    QFileInfo log_info(log_path);
+    if (log_info.exists() && log_info.size() > 5 * 1024 * 1024) {
+        const QString rotated_path = log_dir + QStringLiteral("/quickdeck.log.1");
+        QFile::remove(rotated_path);
+        QFile::rename(log_path, rotated_path);
+    }
+
     QFile file(log_path);
     if (file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
         QTextStream stream(&file);

@@ -292,6 +292,14 @@ Quick paste: %1</translation>
         <source>Removed %1 old entries to stay within the limit.</source>
         <translation>Removed %1 old entries to stay within the limit.</translation>
     </message>
+    <message>
+        <source>Hotkey Registration</source>
+        <translation>Hotkey Registration</translation>
+    </message>
+    <message>
+        <source>Could not register %1: %2</source>
+        <translation>Could not register %1: %2</translation>
+    </message>
 </context>
 <context>
     <name>UserMessages</name>
@@ -355,6 +363,69 @@ Quick paste: %1</translation>
     <message>
         <source>&amp;No</source>
         <translation>&amp;No</translation>
+    </message>
+</context>
+<context>
+    <name>LauncherOverlay</name>
+    <message>
+        <source>Search apps or type &gt; for commands...</source>
+        <translation>Search apps or type &gt; for commands...</translation>
+    </message>
+</context>
+<context>
+    <name>SearchPage</name>
+    <message>
+        <source>Type &gt; to run commands</source>
+        <translation>Type &gt; to run commands</translation>
+    </message>
+    <message>
+        <source>Search apps or type &gt; for commands</source>
+        <translation>Search apps or type &gt; for commands</translation>
+    </message>
+    <message>
+        <source>Enter</source>
+        <translation>Enter</translation>
+    </message>
+</context>
+<context>
+    <name>ClipboardPage</name>
+    <message>
+        <source>Enter · Ctrl+Enter paste</source>
+        <translation>Enter · Ctrl+Enter paste</translation>
+    </message>
+</context>
+<context>
+    <name>ModeSwitcher</name>
+    <message>
+        <source>Search</source>
+        <translation>Search</translation>
+    </message>
+    <message>
+        <source>Clipboard</source>
+        <translation>Clipboard</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsOverlay</name>
+    <message>
+        <source>QuickDeck Settings</source>
+        <translation>QuickDeck Settings</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>General</translation>
+    </message>
+    <message>
+        <source>Hotkeys</source>
+        <translation>Hotkeys</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>Language</translation>
+    </message>
+    <message>
+        <source>Enable debug logging</source>
+        <translation>Enable debug logging</translation>
     </message>
 </context>
 </TS>

@@ -5,6 +5,7 @@ import QuickDeckLauncher
 
 Window {
     id: root
+    objectName: "launcherOverlay"
     width: 680
     height: 460
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
@@ -22,7 +23,7 @@ Window {
     QtObject {
         id: chrome
         property real opacityValue: launcher.visible ? 1.0 : 0.0
-        property real scaleValue: launcher.visible ? 1.0 : 0.97
+        property real scaleValue: launcher.visible ? 1.0 : 0.96
     }
 
     Item {
@@ -31,7 +32,7 @@ Window {
         scale: chrome.scaleValue
         transformOrigin: Item.Center
 
-        Behavior on scale { NumberAnimation { duration: QuickDeckTheme.animFast; easing.type: Easing.OutBack } }
+        Behavior on scale { NumberAnimation { duration: QuickDeckTheme.animNormal; easing.type: Easing.OutBack } }
 
         GlassPanel {
             anchors.fill: parent
@@ -41,61 +42,17 @@ Window {
                 anchors.margins: QuickDeckTheme.spaceLg
                 spacing: QuickDeckTheme.spaceMd
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: QuickDeckTheme.spaceSm
-
-                    Rectangle {
-                        Layout.preferredWidth: 36
-                        Layout.preferredHeight: 36
-                        radius: QuickDeckTheme.radiusPill
-                        color: QuickDeckTheme.primarySoft
-
-                        Label {
-                            anchors.centerIn: parent
-                            text: launcher.modeValue === 0 ? "⌕" : "⎘"
-                            color: QuickDeckTheme.primary
-                            font.pixelSize: 16
-                        }
-                    }
-
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        Label {
-                            text: launcher.modeValue === 0
-                                  ? qsTr("Search Mode")
-                                  : qsTr("Clipboard Mode")
-                            color: QuickDeckTheme.textPrimary
-                            font.pixelSize: 16
-                            font.weight: Font.DemiBold
-                        }
-
-                        Label {
-                            text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
-                            color: QuickDeckTheme.textSecondary
-                            font.pixelSize: 12
-                        }
-                    }
-
-                    Label {
-                        text: launcher.itemCount
-                        color: QuickDeckTheme.textMuted
-                        font.pixelSize: 12
-                        padding: 8
-                        background: Rectangle {
-                            radius: QuickDeckTheme.radiusPill
-                            color: QuickDeckTheme.fieldFill
-                        }
-                    }
+                ModeSwitcher {
+                    Layout.alignment: Qt.AlignHCenter
+                    modeValue: launcher.modeValue
+                    onModeSelected: function(modeValue) { launcher.switch_mode(modeValue) }
                 }
 
                 SearchField {
                     id: searchField
                     Layout.fillWidth: true
                     placeholderText: launcher.modeValue === 0
-                        ? qsTr("Search apps or paste a path...")
+                        ? qsTr("Search apps or type > for commands...")
                         : qsTr("Filter clipboard history...")
                     text: launcher.query
                     onTextChanged: launcher.query = text
@@ -108,38 +65,34 @@ Window {
                         event.accepted = true
                         launcher.move_selection(1)
                     }
-                    Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex)
+                    Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex, false)
                     Keys.onEscapePressed: launcher.dismiss()
+
+                    Keys.onPressed: function(event) {
+                        if ((event.modifiers & Qt.ControlModifier) && event.key === Qt.Key_Return) {
+                            event.accepted = true
+                            launcher.activate_selected(launcher.selectedIndex, true)
+                        }
+                        if (event.key === Qt.Key_Tab) {
+                            event.accepted = true
+                            const nextMode = launcher.modeValue === 0 ? 1 : 0
+                            launcher.switch_mode(nextMode)
+                        }
+                        if (event.key === Qt.Key_Delete && launcher.modeValue === 1) {
+                            event.accepted = true
+                            launcher.delete_selected_at(launcher.selectedIndex)
+                        }
+                    }
                 }
 
-                ListView {
-                    id: resultList
+                StackLayout {
+                    id: pageStack
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    clip: true
-                    spacing: 6
-                    model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
-                    currentIndex: launcher.selectedIndex
-                    onCurrentIndexChanged: launcher.selectedIndex = currentIndex
+                    currentIndex: launcher.modeValue
 
-                    delegate: ResultRow {
-                        title: launcher.modeValue === 0 ? model.name : model.preview
-                        subtitle: launcher.modeValue === 0 ? model.subtitle : ""
-                        iconSource: launcher.modeValue === 0 ? model.iconPath : ""
-                        isPinned: model.isPinned
-                        highlighted: ListView.isCurrentItem
-                        onClicked: resultList.currentIndex = index
-                    }
-
-                    Label {
-                        anchors.centerIn: parent
-                        visible: resultList.count === 0
-                        text: launcher.modeValue === 0
-                              ? qsTr("No applications found")
-                              : qsTr("No clipboard entries")
-                        color: QuickDeckTheme.textMuted
-                        font.pixelSize: 14
-                    }
+                    SearchPage {}
+                    ClipboardPage {}
                 }
             }
         }
@@ -152,8 +105,8 @@ Window {
 
     Shortcut {
         sequence: "Ctrl+Shift+P"
-        enabled: launcher.visible && resultList.count > 0
-        onActivated: launcher.toggle_pin_at(resultList.currentIndex)
+        enabled: launcher.visible && launcher.itemCount > 0
+        onActivated: launcher.toggle_pin_at(launcher.selectedIndex)
     }
 
     Timer {
@@ -172,24 +125,38 @@ Window {
                 searchField.text = launcher.query
                 root.requestActivate()
                 searchField.forceActiveFocus()
-                resultList.currentIndex = launcher.selectedIndex
                 root.blurGraceActive = true
                 blurGraceTimer.restart()
             } else {
                 chrome.opacityValue = 0.0
-                chrome.scaleValue = 0.97
+                chrome.scaleValue = 0.96
             }
         }
 
         function onHideRequested() {
             chrome.opacityValue = 0.0
-            chrome.scaleValue = 0.97
+            chrome.scaleValue = 0.96
             hideTimer.restart()
         }
 
         function onSelectedIndexChanged() {
-            resultList.currentIndex = launcher.selectedIndex
+            // child ListViews bind selectedIndex directly
         }
+
+        function onModeChanged() {
+            pageStack.opacity = 0
+            pageFade.restart()
+        }
+    }
+
+    NumberAnimation {
+        id: pageFade
+        target: pageStack
+        property: "opacity"
+        from: 0
+        to: 1
+        duration: QuickDeckTheme.animNormal
+        easing.type: Easing.OutCubic
     }
 
     Timer {

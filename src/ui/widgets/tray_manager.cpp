@@ -2,7 +2,7 @@
 
 #include "core/user_messages.h"
 #include "ui/launcher_controller.h"
-#include "ui/widgets/settings_window.h"
+#include "ui/settings_controller.h"
 
 #include <QAction>
 #include <QApplication>
@@ -12,7 +12,7 @@ namespace quickdeck {
 
 TrayManager::TrayManager(ApplicationContext &context,
                          LauncherController &launcher,
-                         SettingsWindow &settings,
+                         SettingsController &settings,
                          QObject *parent)
     : QObject(parent)
     , context_(context)
@@ -43,7 +43,7 @@ void TrayManager::build_menu()
     menu_->addSeparator();
 
     settings_action_ = menu_->addAction(QString());
-    connect(settings_action_, &QAction::triggered, &settings_, &SettingsWindow::show);
+    connect(settings_action_, &QAction::triggered, &settings_, &SettingsController::show);
 
     menu_->addSeparator();
 
@@ -100,6 +100,14 @@ void TrayManager::show_quick_paste_failed(const QString &error_code)
                       UserMessages::translate_error(error_code),
                       QSystemTrayIcon::Warning,
                       4000);
+}
+
+void TrayManager::show_hotkey_registration_failed(const QString &hotkey_name, const QString &detail)
+{
+    tray_.showMessage(tr("Hotkey Registration"),
+                      tr("Could not register %1: %2").arg(hotkey_name, detail),
+                      QSystemTrayIcon::Warning,
+                      5000);
 }
 
 void TrayManager::show_entries_trimmed(int removed_count)

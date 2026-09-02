@@ -292,6 +292,14 @@ Quick paste: %1</source>
         <source>Removed %1 old entries to stay within the limit.</source>
         <translation>已删除 %1 条旧记录以保持在限制内。</translation>
     </message>
+    <message>
+        <source>Hotkey Registration</source>
+        <translation>快捷键注册</translation>
+    </message>
+    <message>
+        <source>Could not register %1: %2</source>
+        <translation>无法注册 %1：%2</translation>
+    </message>
 </context>
 <context>
     <name>UserMessages</name>
@@ -355,6 +363,69 @@ Quick paste: %1</source>
     <message>
         <source>&amp;No</source>
         <translation>否(&amp;N)</translation>
+    </message>
+</context>
+<context>
+    <name>LauncherOverlay</name>
+    <message>
+        <source>Search apps or type &gt; for commands...</source>
+        <translation>搜索应用或输入 &gt; 运行命令...</translation>
+    </message>
+</context>
+<context>
+    <name>SearchPage</name>
+    <message>
+        <source>Type &gt; to run commands</source>
+        <translation>输入 &gt; 运行命令</translation>
+    </message>
+    <message>
+        <source>Search apps or type &gt; for commands</source>
+        <translation>搜索应用或输入 &gt; 运行命令</translation>
+    </message>
+    <message>
+        <source>Enter</source>
+        <translation>Enter</translation>
+    </message>
+</context>
+<context>
+    <name>ClipboardPage</name>
+    <message>
+        <source>Enter · Ctrl+Enter paste</source>
+        <translation>Enter · Ctrl+Enter 粘贴</translation>
+    </message>
+</context>
+<context>
+    <name>ModeSwitcher</name>
+    <message>
+        <source>Search</source>
+        <translation>搜索</translation>
+    </message>
+    <message>
+        <source>Clipboard</source>
+        <translation>剪贴板</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsOverlay</name>
+    <message>
+        <source>QuickDeck Settings</source>
+        <translation>QuickDeck 设置</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>常规</translation>
+    </message>
+    <message>
+        <source>Hotkeys</source>
+        <translation>快捷键</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>语言</translation>
+    </message>
+    <message>
+        <source>Enable debug logging</source>
+        <translation>启用调试日志</translation>
     </message>
 </context>
 </TS>

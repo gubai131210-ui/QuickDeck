@@ -51,7 +51,7 @@ ItemDelegate {
         Column {
             spacing: 2
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 46 - (pinBadge.visible ? 22 : 0)
+            width: parent.width - 46 - (pinBadge.visible ? 22 : 0) - (actionHintLabel.visible ? 72 : 0)
 
             Label {
                 id: titleLabel
@@ -69,6 +69,20 @@ ItemDelegate {
                 color: QuickDeckTheme.textSecondary
                 font.pixelSize: 11
                 elide: Text.ElideMiddle
+            }
+        }
+
+        Label {
+            id: actionHintLabel
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.actionHint.length > 0
+            text: root.actionHint
+            color: QuickDeckTheme.textMuted
+            font.pixelSize: 10
+            padding: 6
+            background: Rectangle {
+                radius: QuickDeckTheme.radiusPill
+                color: QuickDeckTheme.fieldFill
             }
         }
 
@@ -93,5 +107,6 @@ ItemDelegate {
     property string title: ""
     property string subtitle: ""
     property string iconSource: ""
+    property string actionHint: ""
     property bool isPinned: false
 }

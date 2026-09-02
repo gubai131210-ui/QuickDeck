@@ -1,8 +1,12 @@
 #include "ui/launcher_controller.h"
 
+#include "core/command_router.h"
 #include "core/user_messages.h"
+#include "services/app_indexer.h"
+#include "services/locale_service.h"
 #include "services/logger.h"
 #include "services/search_service.h"
+#include "ui/settings_controller.h"
 
 #include <QApplication>
 #include <QClipboard>
@@ -48,6 +52,21 @@ LauncherController::LauncherController(ApplicationContext &context, QObject *par
     load_runtime_settings();
 }
 
+void LauncherController::set_settings_controller(SettingsController *settings_controller)
+{
+    settings_controller_ = settings_controller;
+}
+
+void LauncherController::set_locale_service(LocaleService *locale_service)
+{
+    locale_service_ = locale_service;
+}
+
+void LauncherController::set_qml_engine(QQmlApplicationEngine *qml_engine)
+{
+    qml_engine_ = qml_engine;
+}
+
 void LauncherController::load_runtime_settings()
 {
     const Result<bool> close_on_blur =
@@ -85,6 +104,7 @@ void LauncherController::show_search()
     query_.clear();
     visible_ = true;
     selected_index_ = 0;
+    set_command_mode(false);
     emit modeChanged();
     emit visibleChanged();
     emit queryChanged();
@@ -98,11 +118,39 @@ void LauncherController::show_clipboard()
     query_.clear();
     visible_ = true;
     selected_index_ = 0;
+    set_command_mode(false);
     emit modeChanged();
     emit visibleChanged();
     emit queryChanged();
     emit selectedIndexChanged();
     refresh_results();
+}
+
+void LauncherController::switch_mode(int mode_value)
+{
+    const LauncherMode next_mode =
+        mode_value == static_cast<int>(LauncherMode::Clipboard) ? LauncherMode::Clipboard
+                                                                : LauncherMode::Search;
+    if (mode_ == next_mode) {
+        return;
+    }
+    mode_ = next_mode;
+    query_.clear();
+    selected_index_ = 0;
+    set_command_mode(false);
+    emit modeChanged();
+    emit queryChanged();
+    emit selectedIndexChanged();
+    refresh_results();
+}
+
+void LauncherController::set_command_mode(bool enabled)
+{
+    if (command_mode_ == enabled) {
+        return;
+    }
+    command_mode_ = enabled;
+    emit commandModeChanged();
 }
 
 void LauncherController::hide()
@@ -206,6 +254,15 @@ void LauncherController::toggle_pin_at(int index)
 void LauncherController::refresh_results()
 {
     if (mode_ == LauncherMode::Search) {
+        if (CommandRouter::is_command_query(query_)) {
+            set_command_mode(true);
+            command_results_ = CommandRouter::match_commands(query_);
+            command_model_.set_entries(command_results_);
+            update_item_count();
+            return;
+        }
+
+        set_command_mode(false);
         if (query_.trimmed().isEmpty()) {
             const Result<QList<AppEntry>> pinned = context_.database().apps().list_pinned();
             const Result<QList<AppEntry>> recent = context_.database().apps().list_recent(10);
@@ -233,8 +290,12 @@ void LauncherController::refresh_results()
 
 void LauncherController::update_item_count()
 {
-    const int count =
-        mode_ == LauncherMode::Search ? app_model_.rowCount() : clipboard_model_.rowCount();
+    int count = 0;
+    if (mode_ == LauncherMode::Search) {
+        count = command_mode_ ? command_model_.rowCount() : app_model_.rowCount();
+    } else {
+        count = clipboard_model_.rowCount();
+    }
     if (item_count_ == count) {
         return;
     }
@@ -245,8 +306,57 @@ void LauncherController::update_item_count()
     }
 }
 
-void LauncherController::activate_selected(int index)
+void LauncherController::execute_command(const CommandItem &command)
 {
+    if (command.id == QStringLiteral("settings")) {
+        dismiss();
+        if (settings_controller_ != nullptr) {
+            settings_controller_->show();
+        } else {
+            emit openSettingsRequested();
+        }
+        return;
+    }
+    if (command.id == QStringLiteral("lang")) {
+        QString language = command.argument;
+        if (language == QStringLiteral("zh")) {
+            language = QStringLiteral("zh_CN");
+        }
+        if (!language.isEmpty() && locale_service_ != nullptr) {
+            locale_service_->set_language(context_.settings(),
+                                          LocaleService::normalize_language(language), qml_engine_);
+        }
+        dismiss();
+        return;
+    }
+    if (command.id == QStringLiteral("refresh")) {
+        context_.app_indexer().refresh_catalog(true);
+        dismiss();
+        return;
+    }
+    if (command.id == QStringLiteral("search")) {
+        switch_mode(static_cast<int>(LauncherMode::Search));
+        return;
+    }
+    if (command.id == QStringLiteral("clipboard")) {
+        switch_mode(static_cast<int>(LauncherMode::Clipboard));
+        return;
+    }
+    if (command.id == QStringLiteral("paste")) {
+        quick_paste_latest();
+        dismiss();
+    }
+}
+
+void LauncherController::activate_selected(int index, bool simulate_paste)
+{
+    if (mode_ == LauncherMode::Search && command_mode_) {
+        if (index >= 0 && index < command_results_.size()) {
+            execute_command(command_results_.at(index));
+        }
+        return;
+    }
+
     if (mode_ == LauncherMode::Search) {
         if (index >= 0 && index < app_results_.size()) {
             const AppEntry &selected = app_results_.at(index);
@@ -278,9 +388,13 @@ void LauncherController::activate_selected(int index)
     context_.clipboard_monitor().set_suppress_next_change(true);
     QApplication::clipboard()->setText(clipboard_results_.at(index).content);
 
-    const Result<bool> simulate_paste = context_.settings().get_bool(
-        QStringLiteral("clipboard.simulate_paste_on_activate"), false);
-    if (simulate_paste.is_ok() && simulate_paste.value()) {
+    bool should_simulate = simulate_paste;
+    if (!should_simulate) {
+        const Result<bool> simulate_setting = context_.settings().get_bool(
+            QStringLiteral("clipboard.simulate_paste_on_activate"), false);
+        should_simulate = simulate_setting.is_ok() && simulate_setting.value();
+    }
+    if (should_simulate) {
         const Result<void> paste_result = context_.platform().simulate_paste();
         if (paste_result.is_err()) {
             emit quickPasteFailed(QString::fromLatin1(ErrorCodes::kPasteSimulateFailed));
@@ -288,6 +402,27 @@ void LauncherController::activate_selected(int index)
     }
 
     dismiss();
+}
+
+void LauncherController::delete_selected_at(int index)
+{
+    if (mode_ != LauncherMode::Clipboard || index < 0 || index >= clipboard_results_.size()) {
+        return;
+    }
+
+    const ClipboardEntry &entry = clipboard_results_.at(index);
+    if (entry.id <= 0) {
+        return;
+    }
+
+    const Result<void> remove_result = context_.database().clipboard().remove(entry.id);
+    if (remove_result.is_err()) {
+        QD_LOG_WARN(remove_result.error());
+        return;
+    }
+
+    refresh_results();
+    set_selected_index(qMin(index, qMax(0, item_count_ - 1)));
 }
 
 void LauncherController::quick_paste_latest()
@@ -339,6 +474,7 @@ void LauncherController::setup_hotkeys()
             [this]() { show_search(); });
         if (result.is_err()) {
             QD_LOG_WARN(result.error());
+            emit hotkeyRegistrationFailed(tr("Launcher"), result.error());
         }
     }
     if (clipboard_hotkey.is_ok()) {
@@ -347,6 +483,7 @@ void LauncherController::setup_hotkeys()
             [this]() { show_clipboard(); });
         if (result.is_err()) {
             QD_LOG_WARN(result.error());
+            emit hotkeyRegistrationFailed(tr("Clipboard"), result.error());
         }
     }
     if (quick_paste_hotkey.is_ok()) {
@@ -357,6 +494,7 @@ void LauncherController::setup_hotkeys()
                 [this]() { quick_paste_latest(); });
             if (result.is_err()) {
                 QD_LOG_WARN(result.error());
+                emit hotkeyRegistrationFailed(tr("Quick Paste"), result.error());
             }
         }
     }

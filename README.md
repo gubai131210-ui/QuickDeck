@@ -2,7 +2,7 @@
 
 Cross-platform desktop launcher and clipboard history manager. **V1 targets Windows.**
 
-**Current status:** Phase 5 complete — V1 feature-complete. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+**Current status:** Phase 6 complete — dual-page overlay, command palette, QML settings. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ## Features (V1)
 
@@ -10,7 +10,9 @@ Cross-platform desktop launcher and clipboard history manager. **V1 targets Wind
 - App icon cache, pin (`Ctrl+Shift+P`), usage-weighted search
 - Clipboard text history with FTS5 search and pin
 - Global hotkeys: `Alt+Space` (launcher), `Ctrl+Shift+V` (clipboard), `Ctrl+Alt+V` (quick paste)
-- System tray with settings dialog (General / Hotkeys / Clipboard)
+- Command palette: type `>` in search mode (`>settings`, `>lang zh`, …)
+- Dual-page glass overlay with Search / Clipboard tabs
+- QML settings panel (General / Hotkeys / Clipboard)
 - First-run wizard: language + hotkey setup
 - Path open: type `C:\path\to\file` or `~/path`
 - Languages: English, 简体中文
@@ -68,7 +70,7 @@ See [docs/RELEASE.md](docs/RELEASE.md) for details.
 
 ## Tests
 
-11 automated tests. From build directory:
+12 automated tests. From build directory:
 
 ```powershell
 ctest --output-on-failure
