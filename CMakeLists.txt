@@ -181,5 +181,17 @@ qt_generate_deploy_app_script(
 )
 install(SCRIPT ${deploy_script})
 
+if(WIN32)
+    add_custom_target(QuickDeckPackage
+        COMMAND powershell -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/scripts/package_windows.ps1"
+            -BuildDir "$<TARGET_FILE_DIR:QuickDeck>"
+            -QtBinDir "${Qt6_DIR}/../../../bin"
+        DEPENDS QuickDeck
+        COMMENT "Package QuickDeck for Windows (QuickDeck-dist)"
+        VERBATIM
+    )
+endif()
+
 enable_testing()
 add_subdirectory(tests)

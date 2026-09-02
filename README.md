@@ -2,15 +2,16 @@
 
 Cross-platform desktop launcher and clipboard history manager. **V1 targets Windows.**
 
-**Current status:** Phase 3 complete — launcher, clipboard, i18n (en/zh), icon cache, pin. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+**Current status:** Phase 5 complete — V1 feature-complete. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ## Features (V1)
 
 - Application search and launch (Start Menu + Registry index)
 - App icon cache, pin (`Ctrl+Shift+P`), usage-weighted search
 - Clipboard text history with FTS5 search and pin
-- Global hotkeys: `Alt+Space` (launcher), `Ctrl+Shift+V` (clipboard)
+- Global hotkeys: `Alt+Space` (launcher), `Ctrl+Shift+V` (clipboard), `Ctrl+Alt+V` (quick paste)
 - System tray with settings dialog (General / Hotkeys / Clipboard)
+- First-run wizard: language + hotkey setup
 - Path open: type `C:\path\to\file` or `~/path`
 - Languages: English, 简体中文
 
@@ -23,7 +24,7 @@ See [docs/V1_SCOPE.md](docs/V1_SCOPE.md) for the full out-of-scope list.
 ```
 src/
 ├── app/        Application lifecycle, ApplicationContext
-├── core/       Domain types, Result, interfaces, UserMessages
+├── core/       Domain types, Result, interfaces, UserMessages, search_ranking
 ├── data/       SQLite, migrations, repository adapters
 ├── platform/   IPlatformServices (win/ + stub/)
 ├── services/   Indexer, scanner, icon cache, clipboard, search, locale
@@ -40,6 +41,7 @@ src/
 | [CONTEXT.md](CONTEXT.md) | Domain glossary |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Layers, flows, debt |
 | [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | Phase checklist, tests |
+| [docs/RELEASE.md](docs/RELEASE.md) | Windows packaging |
 | [docs/AGENT_SKILLS.md](docs/AGENT_SKILLS.md) | Which skills to use |
 
 ## Database
@@ -56,9 +58,17 @@ Requirements: Qt 6.5+, CMake 3.19+, C++17 compiler.
 2. **Run CMake** then build **QuickDeck**
 3. Run from Qt Creator (migrations copied next to exe on build)
 
+## Release (Windows)
+
+```powershell
+cmake --build . --target QuickDeckPackage
+```
+
+See [docs/RELEASE.md](docs/RELEASE.md) for details.
+
 ## Tests
 
-10 automated tests. From build directory:
+11 automated tests. From build directory:
 
 ```powershell
 ctest --output-on-failure

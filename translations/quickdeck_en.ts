@@ -20,6 +20,14 @@
         <translation>Let's confirm your shortcuts.</translation>
     </message>
     <message>
+        <source>Choose your language and confirm shortcuts.</source>
+        <translation>Choose your language and confirm shortcuts.</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>Language</translation>
+    </message>
+    <message>
         <source>Global Hotkeys</source>
         <translation>Global Hotkeys</translation>
     </message>
@@ -30,6 +38,18 @@
     <message>
         <source>Clipboard panel</source>
         <translation>Clipboard panel</translation>
+    </message>
+    <message>
+        <source>Quick paste</source>
+        <translation>Quick paste</translation>
+    </message>
+    <message>
+        <source>Disabled (empty shortcut)</source>
+        <translation>Disabled (empty shortcut)</translation>
+    </message>
+    <message>
+        <source>Duplicate shortcut — each hotkey must be unique</source>
+        <translation>Duplicate shortcut — each hotkey must be unique</translation>
     </message>
     <message>
         <source>Available</source>
@@ -46,6 +66,26 @@
     <message>
         <source>QuickDeck will stay in the system tray.</source>
         <translation>QuickDeck will stay in the system tray.</translation>
+    </message>
+    <message>
+        <source>Launcher: %1
+Clipboard panel: %2</source>
+        <translation>Launcher: %1
+Clipboard panel: %2</translation>
+    </message>
+    <message>
+        <source>
+Quick paste: %1</source>
+        <translation>
+Quick paste: %1</translation>
+    </message>
+    <message>
+        <source>Duplicate Hotkeys</source>
+        <translation>Duplicate Hotkeys</translation>
+    </message>
+    <message>
+        <source>Each shortcut must be unique. Continue anyway?</source>
+        <translation>Each shortcut must be unique. Continue anyway?</translation>
     </message>
     <message>
         <source>Hotkey Conflict</source>

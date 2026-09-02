@@ -20,6 +20,14 @@
         <translation>请确认您的快捷键设置。</translation>
     </message>
     <message>
+        <source>Choose your language and confirm shortcuts.</source>
+        <translation>选择语言并确认快捷键。</translation>
+    </message>
+    <message>
+        <source>Language</source>
+        <translation>语言</translation>
+    </message>
+    <message>
         <source>Global Hotkeys</source>
         <translation>全局快捷键</translation>
     </message>
@@ -30,6 +38,18 @@
     <message>
         <source>Clipboard panel</source>
         <translation>剪贴板面板</translation>
+    </message>
+    <message>
+        <source>Quick paste</source>
+        <translation>快速粘贴</translation>
+    </message>
+    <message>
+        <source>Disabled (empty shortcut)</source>
+        <translation>已禁用（快捷键为空）</translation>
+    </message>
+    <message>
+        <source>Duplicate shortcut — each hotkey must be unique</source>
+        <translation>快捷键重复 — 每个快捷键必须唯一</translation>
     </message>
     <message>
         <source>Available</source>
@@ -46,6 +66,26 @@
     <message>
         <source>QuickDeck will stay in the system tray.</source>
         <translation>QuickDeck 将驻留在系统托盘。</translation>
+    </message>
+    <message>
+        <source>Launcher: %1
+Clipboard panel: %2</source>
+        <translation>启动器：%1
+剪贴板面板：%2</translation>
+    </message>
+    <message>
+        <source>
+Quick paste: %1</source>
+        <translation>
+快速粘贴：%1</translation>
+    </message>
+    <message>
+        <source>Duplicate Hotkeys</source>
+        <translation>快捷键重复</translation>
+    </message>
+    <message>
+        <source>Each shortcut must be unique. Continue anyway?</source>
+        <translation>每个快捷键必须互不重复。是否仍继续？</translation>
     </message>
     <message>
         <source>Hotkey Conflict</source>

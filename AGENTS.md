@@ -4,7 +4,7 @@
 
 Cross-platform desktop launcher + clipboard history (**V1: Windows only**). Qt 6.5+, C++17, CMake.
 
-**Status:** Phase 3 complete (2026-09-02). See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
+**Status:** Phase 5 complete (2026-09-02). V1 feature-complete. See [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md).
 
 ## Architecture
 
@@ -51,7 +51,8 @@ See [docs/V1_SCOPE.md](docs/V1_SCOPE.md). Do not implement out-of-scope features
 - Open in Qt Creator with Qt 6.11 MinGW kit
 - User tests locally (Chinese path — agent should not assume CLI build on user machine)
 - After CMake/TS changes: user runs **Run CMake → Rebuild**
-- Tests: 10 CTest targets — `ctest` from build directory
+- Tests: 11 CTest targets — `ctest` from build directory
+- Release: `cmake --build . --target QuickDeckPackage` — see [docs/RELEASE.md](docs/RELEASE.md)
 
 ## ADRs
 
@@ -67,9 +68,10 @@ Skill selection map: [docs/AGENT_SKILLS.md](docs/AGENT_SKILLS.md).
 |-----|---------|
 | [docs/PHASE2.md](docs/PHASE2.md) | Hotkeys, overlay UX, migrations |
 | [docs/PHASE3.md](docs/PHASE3.md) | i18n, theme, indexer, pin, icon cache (complete) |
+| [docs/PHASE4.md](docs/PHASE4.md) | Quick paste, retention toast (complete) |
+| [docs/PHASE5.md](docs/PHASE5.md) | First-run polish, packaging (complete) |
 
 ## Known Debt (do not worsen)
 
-- `data/` → `services/search_ranking` include (move to `core/` when touching)
 - Direct `win_lnk_resolver` use in `icon_cache` / `app_display` (should go via platform interface)
 - Win platform sources compiled unconditionally in CMake (V1 Windows-only OK)

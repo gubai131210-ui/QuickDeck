@@ -10,6 +10,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QTimer>
 
 namespace quickdeck {
 
@@ -22,7 +23,7 @@ Result<void> Application::initialize()
 {
     QCoreApplication::setApplicationName(QStringLiteral("QuickDeck"));
     QCoreApplication::setOrganizationName(QStringLiteral("QuickDeck"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.5.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.6.0"));
 
     const Result<void> init_result = context_.initialize();
     if (init_result.is_err()) {
@@ -69,17 +70,19 @@ Result<void> Application::initialize()
     const Result<bool> setup_completed =
         context_.settings().get_bool(QStringLiteral("setup.completed"), false);
     if (setup_completed.is_ok() && !setup_completed.value()) {
-        FirstRunWizard wizard(context_, *launcher_);
+        FirstRunWizard wizard(context_, *launcher_, locale_, qml_engine_);
         const bool completed = wizard.run();
         Q_UNUSED(completed)
     } else {
         launcher_->reload_settings();
     }
 
-    const Result<int> index_result = context_.app_indexer().refresh_catalog();
-    if (index_result.is_err()) {
-        QD_LOG_WARN(index_result.error());
-    }
+    QTimer::singleShot(0, this, [this]() {
+        const Result<int> index_result = context_.app_indexer().refresh_catalog();
+        if (index_result.is_err()) {
+            QD_LOG_WARN(index_result.error());
+        }
+    });
 
     connect(&context_.app_indexer(), &AppIndexer::user_indexing_finished, tray_.get(),
             &TrayManager::show_index_refresh_success);
@@ -90,7 +93,7 @@ Result<void> Application::initialize()
 
     context_.clipboard_monitor().start();
 
-    QD_LOG_INFO(QStringLiteral("QuickDeck started (Phase 3 iteration 3)"));
+    QD_LOG_INFO(QStringLiteral("QuickDeck started"));
     return Result<void>::ok();
 }
 
