@@ -88,7 +88,6 @@ target_link_libraries(QuickDeckCore
 qt_add_executable(QuickDeck
     WIN32 MACOSX_BUNDLE
     src/app/main.cpp
-    resources/resources.qrc
 )
 
 qt_add_qml_module(QuickDeck
@@ -97,6 +96,13 @@ qt_add_qml_module(QuickDeck
     QML_FILES
         src/ui/qml/LauncherOverlay.qml
     NO_PLUGIN
+)
+
+qt_add_resources(QuickDeck "quickdeck_icons"
+    PREFIX "/icons"
+    BASE "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons"
+    FILES
+        resources/icons/quickdeck.svg
 )
 
 target_link_libraries(QuickDeck

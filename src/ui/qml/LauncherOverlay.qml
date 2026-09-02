@@ -15,10 +15,8 @@ Window {
     property bool blurGraceActive: false
 
     opacity: chrome.opacityValue
-    scale: chrome.scaleValue
 
     Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
-    Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
 
     QtObject {
         id: chrome
@@ -26,85 +24,94 @@ Window {
         property real scaleValue: launcher.visible ? 1.0 : 0.96
     }
 
-    Shortcut {
-        sequences: [StandardKey.Cancel]
-        onActivated: launcher.dismiss()
-    }
-
-    Rectangle {
+    Item {
+        id: chromeRoot
         anchors.fill: parent
-        radius: 12
-        color: Qt.rgba(0.12, 0.12, 0.12, 0.88)
-        border.color: Qt.rgba(1, 1, 1, 0.08)
+        scale: chrome.scaleValue
+        transformOrigin: Item.Center
 
-        ColumnLayout {
+        Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+
+        Rectangle {
             anchors.fill: parent
-            anchors.margins: 16
-            spacing: 12
+            radius: 12
+            color: Qt.rgba(0.12, 0.12, 0.12, 0.88)
+            border.color: Qt.rgba(1, 1, 1, 0.08)
 
-            TextField {
-                id: searchField
-                Layout.fillWidth: true
-                placeholderText: launcher.modeValue === 0
-                    ? qsTr("Search apps or paste a path...")
-                    : qsTr("Filter clipboard history...")
-                text: launcher.query
-                onTextChanged: launcher.query = text
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: 16
+                spacing: 12
 
-                Keys.onUpPressed: function(event) {
-                    event.accepted = true
-                    launcher.moveSelection(-1)
-                }
-                Keys.onDownPressed: function(event) {
-                    event.accepted = true
-                    launcher.moveSelection(1)
-                }
-                Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex)
-                Keys.onEscapePressed: launcher.dismiss()
-            }
+                TextField {
+                    id: searchField
+                    Layout.fillWidth: true
+                    placeholderText: launcher.modeValue === 0
+                        ? qsTr("Search apps or paste a path...")
+                        : qsTr("Filter clipboard history...")
+                    text: launcher.query
+                    onTextChanged: launcher.query = text
 
-            Label {
-                text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
-                color: "#cccccc"
-            }
-
-            ListView {
-                id: resultList
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
-                currentIndex: launcher.selectedIndex
-                onCurrentIndexChanged: launcher.selectedIndex = currentIndex
-                highlight: Rectangle {
-                    color: Qt.rgba(1, 1, 1, 0.08)
-                    radius: 6
-                }
-                highlightMoveDuration: 80
-                delegate: ItemDelegate {
-                    width: resultList.width
-                    highlighted: ListView.isCurrentItem
-                    contentItem: Column {
-                        spacing: 2
-                        Label {
-                            text: launcher.modeValue === 0 ? model.name : model.preview
-                            color: "white"
-                            elide: Text.ElideRight
-                            width: parent.width
-                        }
-                        Label {
-                            visible: launcher.modeValue === 0
-                            text: model.path
-                            color: "#888888"
-                            font.pixelSize: 11
-                            elide: Text.ElideMiddle
-                            width: parent.width
-                        }
+                    Keys.onUpPressed: function(event) {
+                        event.accepted = true
+                        launcher.moveSelection(-1)
                     }
-                    onClicked: resultList.currentIndex = index
+                    Keys.onDownPressed: function(event) {
+                        event.accepted = true
+                        launcher.moveSelection(1)
+                    }
+                    Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex)
+                    Keys.onEscapePressed: launcher.dismiss()
+                }
+
+                Label {
+                    text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
+                    color: "#cccccc"
+                }
+
+                ListView {
+                    id: resultList
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+                    model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
+                    currentIndex: launcher.selectedIndex
+                    onCurrentIndexChanged: launcher.selectedIndex = currentIndex
+                    highlight: Rectangle {
+                        color: Qt.rgba(1, 1, 1, 0.08)
+                        radius: 6
+                    }
+                    highlightMoveDuration: 80
+                    delegate: ItemDelegate {
+                        width: resultList.width
+                        highlighted: ListView.isCurrentItem
+                        contentItem: Column {
+                            spacing: 2
+                            Label {
+                                text: launcher.modeValue === 0 ? model.name : model.preview
+                                color: "white"
+                                elide: Text.ElideRight
+                                width: parent.width
+                            }
+                            Label {
+                                visible: launcher.modeValue === 0
+                                text: model.path
+                                color: "#888888"
+                                font.pixelSize: 11
+                                elide: Text.ElideMiddle
+                                width: parent.width
+                            }
+                        }
+                        onClicked: resultList.currentIndex = index
+                    }
                 }
             }
         }
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Cancel]
+        onActivated: launcher.dismiss()
     }
 
     Timer {
