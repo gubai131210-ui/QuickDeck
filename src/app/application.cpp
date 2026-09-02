@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QQuickWindow>
 
 namespace quickdeck {
@@ -42,6 +43,8 @@ Result<void> Application::initialize()
     if (tray_result.is_err()) {
         return tray_result;
     }
+
+    QQuickStyle::setStyle(QStringLiteral("Basic"));
 
     qml_engine_.rootContext()->setContextProperty(QStringLiteral("launcher"), launcher_.get());
     qml_engine_.loadFromModule(QStringLiteral("QuickDeckLauncher"), QStringLiteral("LauncherOverlay"));

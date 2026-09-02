@@ -16,7 +16,7 @@ TextField {
 
     background: Rectangle {
         radius: QuickDeckTheme.radiusControl
-        color: hovered ? "#FFFFFFFF" : QuickDeckTheme.fieldFill
+        color: root.hovered ? "#FFFFFFFF" : QuickDeckTheme.fieldFill
         border.color: root.activeFocus ? QuickDeckTheme.primary : QuickDeckTheme.divider
         border.width: root.activeFocus ? 2 : 1
         Behavior on color { ColorAnimation { duration: QuickDeckTheme.animFast } }

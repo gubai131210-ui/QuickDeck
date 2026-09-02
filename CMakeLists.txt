@@ -4,7 +4,7 @@ project(QuickDeck LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Quick Qml Sql Test LinguistTools)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Quick Qml QuickControls2 Sql Test LinguistTools)
 
 qt_standard_project_setup()
 
@@ -90,6 +90,7 @@ target_link_libraries(QuickDeckCore
         Qt6::Widgets
         Qt6::Quick
         Qt6::Qml
+        Qt6::QuickControls2
 )
 
 if(WIN32)
@@ -102,6 +103,11 @@ set(QUICKDECK_QML_FILES
     src/ui/qml/components/GlassPanel.qml
     src/ui/qml/components/SearchField.qml
     src/ui/qml/components/ResultRow.qml
+)
+
+set_source_files_properties(
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ui/qml/theme/QuickDeckTheme.qml
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 )
 
 qt_add_executable(QuickDeck
