@@ -177,6 +177,22 @@
         <source>Launcher and clipboard shortcuts cannot be identical. Save anyway?</source>
         <translation>启动器与剪贴板快捷键不能相同。仍要保存吗？</translation>
     </message>
+    <message>
+        <source>Quick paste hotkey</source>
+        <translation>快速粘贴快捷键</translation>
+    </message>
+    <message>
+        <source>Simulate paste when re-copying from overlay</source>
+        <translation>从面板重新复制时模拟粘贴</translation>
+    </message>
+    <message>
+        <source>Shortcuts must be unique. Save anyway?</source>
+        <translation>快捷键必须互不重复。仍要保存吗？</translation>
+    </message>
+    <message>
+        <source>Quick paste shortcut appears unavailable. Save anyway?</source>
+        <translation>快速粘贴快捷键似乎不可用。仍要保存吗？</translation>
+    </message>
 </context>
 <context>
     <name>TrayManager</name>
@@ -224,6 +240,18 @@
         <source>Could not refresh the application index.</source>
         <translation>无法刷新应用索引。</translation>
     </message>
+    <message>
+        <source>Quick Paste</source>
+        <translation>快速粘贴</translation>
+    </message>
+    <message>
+        <source>Clipboard History</source>
+        <translation>剪贴板历史</translation>
+    </message>
+    <message>
+        <source>Removed %1 old entries to stay within the limit.</source>
+        <translation>已删除 %1 条旧记录以保持在限制内。</translation>
+    </message>
 </context>
 <context>
     <name>UserMessages</name>
@@ -250,6 +278,14 @@
     <message>
         <source>Could not save the application index.</source>
         <translation>无法保存应用索引。</translation>
+    </message>
+    <message>
+        <source>Could not simulate paste to the active window.</source>
+        <translation>无法向活动窗口模拟粘贴。</translation>
+    </message>
+    <message>
+        <source>No clipboard history entries to paste.</source>
+        <translation>没有可粘贴的剪贴板历史记录。</translation>
     </message>
 </context>
 <context>

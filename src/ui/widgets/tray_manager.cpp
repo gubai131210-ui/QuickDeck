@@ -94,4 +94,23 @@ void TrayManager::show_index_refresh_failed(const QString &error_code)
     tray_.showMessage(tr("Index Refresh"), detail, QSystemTrayIcon::Warning, 5000);
 }
 
+void TrayManager::show_quick_paste_failed(const QString &error_code)
+{
+    tray_.showMessage(tr("Quick Paste"),
+                      UserMessages::translate_error(error_code),
+                      QSystemTrayIcon::Warning,
+                      4000);
+}
+
+void TrayManager::show_entries_trimmed(int removed_count)
+{
+    if (removed_count <= 0) {
+        return;
+    }
+    tray_.showMessage(tr("Clipboard History"),
+                      tr("Removed %1 old entries to stay within the limit.").arg(removed_count),
+                      QSystemTrayIcon::Information,
+                      3000);
+}
+
 } // namespace quickdeck

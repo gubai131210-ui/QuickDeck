@@ -46,7 +46,7 @@ public:
     virtual Result<void> set_pinned(qint64 id, bool pinned) = 0;
     virtual Result<void> remove(qint64 id) = 0;
     virtual Result<void> clear_unpinned() = 0;
-    virtual Result<void> enforce_retention(int max_entries, int max_age_days) = 0;
+    virtual Result<int> enforce_retention(int max_entries, int max_age_days) = 0;
     virtual Result<bool> is_duplicate(const QString &content) = 0;
     virtual Result<int> count() = 0;
 };

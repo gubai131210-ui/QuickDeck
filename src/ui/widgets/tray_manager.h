@@ -27,6 +27,8 @@ public:
     void show_launch_failed(const QString &app_name, const QString &error_message);
     void show_index_refresh_success(int app_count);
     void show_index_refresh_failed(const QString &error_code);
+    void show_quick_paste_failed(const QString &error_code);
+    void show_entries_trimmed(int removed_count);
 
 private:
     void build_menu();

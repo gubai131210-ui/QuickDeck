@@ -177,6 +177,22 @@
         <source>Launcher and clipboard shortcuts cannot be identical. Save anyway?</source>
         <translation>Launcher and clipboard shortcuts cannot be identical. Save anyway?</translation>
     </message>
+    <message>
+        <source>Quick paste hotkey</source>
+        <translation>Quick paste hotkey</translation>
+    </message>
+    <message>
+        <source>Simulate paste when re-copying from overlay</source>
+        <translation>Simulate paste when re-copying from overlay</translation>
+    </message>
+    <message>
+        <source>Shortcuts must be unique. Save anyway?</source>
+        <translation>Shortcuts must be unique. Save anyway?</translation>
+    </message>
+    <message>
+        <source>Quick paste shortcut appears unavailable. Save anyway?</source>
+        <translation>Quick paste shortcut appears unavailable. Save anyway?</translation>
+    </message>
 </context>
 <context>
     <name>TrayManager</name>
@@ -224,6 +240,18 @@
         <source>Could not refresh the application index.</source>
         <translation>Could not refresh the application index.</translation>
     </message>
+    <message>
+        <source>Quick Paste</source>
+        <translation>Quick Paste</translation>
+    </message>
+    <message>
+        <source>Clipboard History</source>
+        <translation>Clipboard History</translation>
+    </message>
+    <message>
+        <source>Removed %1 old entries to stay within the limit.</source>
+        <translation>Removed %1 old entries to stay within the limit.</translation>
+    </message>
 </context>
 <context>
     <name>UserMessages</name>
@@ -250,6 +278,14 @@
     <message>
         <source>Could not save the application index.</source>
         <translation>Could not save the application index.</translation>
+    </message>
+    <message>
+        <source>Could not simulate paste to the active window.</source>
+        <translation>Could not simulate paste to the active window.</translation>
+    </message>
+    <message>
+        <source>No clipboard history entries to paste.</source>
+        <translation>No clipboard history entries to paste.</translation>
     </message>
 </context>
 <context>

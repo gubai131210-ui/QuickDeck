@@ -1,4 +1,4 @@
-#include "services/search_ranking.h"
+#include "core/search_ranking.h"
 
 #include <QDateTime>
 #include <QtTest>

@@ -1,6 +1,6 @@
 #include "data/repositories/sqlite_app_repository.h"
 
-#include "services/search_ranking.h"
+#include "core/search_ranking.h"
 
 #include <QDateTime>
 #include <QSet>

@@ -50,9 +50,11 @@ private:
     QComboBox *language_combo_ = nullptr;
     QKeySequenceEdit *launcher_hotkey_ = nullptr;
     QKeySequenceEdit *clipboard_hotkey_ = nullptr;
+    QKeySequenceEdit *quick_paste_hotkey_ = nullptr;
     QSpinBox *max_entries_ = nullptr;
     QSpinBox *max_chars_ = nullptr;
     QCheckBox *monitoring_enabled_ = nullptr;
+    QCheckBox *simulate_paste_on_activate_ = nullptr;
     QPushButton *save_button_ = nullptr;
     QPushButton *cancel_button_ = nullptr;
     QPushButton *refresh_button_ = nullptr;

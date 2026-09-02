@@ -1,5 +1,6 @@
 #include "ui/launcher_controller.h"
 
+#include "core/user_messages.h"
 #include "services/logger.h"
 #include "services/search_service.h"
 
@@ -276,7 +277,36 @@ void LauncherController::activate_selected(int index)
 
     context_.clipboard_monitor().set_suppress_next_change(true);
     QApplication::clipboard()->setText(clipboard_results_.at(index).content);
+
+    const Result<bool> simulate_paste = context_.settings().get_bool(
+        QStringLiteral("clipboard.simulate_paste_on_activate"), false);
+    if (simulate_paste.is_ok() && simulate_paste.value()) {
+        const Result<void> paste_result = context_.platform().simulate_paste();
+        if (paste_result.is_err()) {
+            emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteSimulateFailed));
+        }
+    }
+
     dismiss();
+}
+
+void LauncherController::quick_paste_latest()
+{
+    const Result<QList<ClipboardEntry>> recent =
+        context_.database().clipboard().list_recent(1, 0);
+    if (recent.is_err() || recent.value().isEmpty()) {
+        emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteNoEntries));
+        return;
+    }
+
+    const ClipboardEntry &entry = recent.value().first();
+    context_.clipboard_monitor().set_suppress_next_change(true);
+    QApplication::clipboard()->setText(entry.content);
+
+    const Result<void> paste_result = context_.platform().simulate_paste();
+    if (paste_result.is_err()) {
+        emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteSimulateFailed));
+    }
 }
 
 void LauncherController::reload_settings()
@@ -294,11 +324,14 @@ void LauncherController::setup_hotkeys()
 {
     context_.platform().unregister_hotkey(QStringLiteral("launcher"));
     context_.platform().unregister_hotkey(QStringLiteral("clipboard"));
+    context_.platform().unregister_hotkey(QStringLiteral("quick_paste"));
 
     const Result<QString> launcher_hotkey =
         context_.settings().get_string(QStringLiteral("launcher.hotkey"), QStringLiteral("Alt+Space"));
     const Result<QString> clipboard_hotkey = context_.settings().get_string(
         QStringLiteral("clipboard.hotkey"), QStringLiteral("Ctrl+Shift+V"));
+    const Result<QString> quick_paste_hotkey = context_.settings().get_string(
+        QStringLiteral("clipboard.quick_paste_hotkey"), QStringLiteral("Ctrl+Alt+V"));
 
     if (launcher_hotkey.is_ok()) {
         const Result<void> result = context_.platform().register_hotkey(
@@ -314,6 +347,17 @@ void LauncherController::setup_hotkeys()
             [this]() { show_clipboard(); });
         if (result.is_err()) {
             QD_LOG_WARN(result.error());
+        }
+    }
+    if (quick_paste_hotkey.is_ok()) {
+        const QKeySequence quick_paste_sequence(quick_paste_hotkey.value());
+        if (!quick_paste_sequence.isEmpty()) {
+            const Result<void> result = context_.platform().register_hotkey(
+                QStringLiteral("quick_paste"), quick_paste_sequence,
+                [this]() { quick_paste_latest(); });
+            if (result.is_err()) {
+                QD_LOG_WARN(result.error());
+            }
         }
     }
 }

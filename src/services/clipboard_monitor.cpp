@@ -92,7 +92,10 @@ void ClipboardMonitor::on_clipboard_changed()
     const Result<int> max_entries =
         settings_.get_int(QStringLiteral("clipboard.max_entries"), 200);
     if (max_entries.is_ok()) {
-        clipboard_.enforce_retention(max_entries.value(), 0);
+        const Result<int> trim_result = clipboard_.enforce_retention(max_entries.value(), 0);
+        if (trim_result.is_ok() && trim_result.value() > 0) {
+            emit entries_trimmed(trim_result.value());
+        }
     }
 
     emit entry_recorded(insert_result.value());

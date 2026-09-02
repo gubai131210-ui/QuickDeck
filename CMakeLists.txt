@@ -16,6 +16,7 @@ set(QUICKDECK_CORE_SOURCES
     src/data/database_manager.cpp
     src/data/migration_runner.cpp
     src/core/user_messages.cpp
+    src/core/search_ranking.cpp
     src/data/repositories/sqlite_app_repository.cpp
     src/data/repositories/sqlite_clipboard_repository.cpp
     src/data/repositories/sqlite_settings_store.cpp
@@ -29,7 +30,6 @@ set(QUICKDECK_CORE_SOURCES
     src/services/clipboard_monitor.cpp
     src/services/locale_service.cpp
     src/services/logger.cpp
-    src/services/search_ranking.cpp
     src/services/search_service.cpp
     src/ui/launcher_controller.cpp
     src/ui/app_display.cpp
@@ -48,6 +48,7 @@ set(QUICKDECK_CORE_HEADERS
     src/core/interfaces/repositories.h
     src/core/result.h
     src/core/user_messages.h
+    src/core/search_ranking.h
     src/data/database_manager.h
     src/data/migration_runner.h
     src/data/repositories/sqlite_app_repository.h
@@ -63,7 +64,6 @@ set(QUICKDECK_CORE_HEADERS
     src/services/clipboard_monitor.h
     src/services/locale_service.h
     src/services/logger.h
-    src/services/search_ranking.h
     src/services/search_service.h
     src/ui/launcher_controller.h
     src/ui/app_display.h

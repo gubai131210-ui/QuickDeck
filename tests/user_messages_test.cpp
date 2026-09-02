@@ -11,6 +11,7 @@ private slots:
     void recognizes_error_codes();
     void translates_launch_errors();
     void translates_index_errors();
+    void translates_paste_errors();
 };
 
 void UserMessagesTest::initTestCase()
@@ -44,6 +45,19 @@ void UserMessagesTest::translates_index_errors()
         QString::fromLatin1(quickdeck::ErrorCodes::kIndexScanFailed));
     QVERIFY(!translated.isEmpty());
     QVERIFY(!translated.contains(QStringLiteral("index.scan_failed")));
+}
+
+void UserMessagesTest::translates_paste_errors()
+{
+    const QString no_entries = quickdeck::UserMessages::translate_error(
+        QString::fromLatin1(quickdeck::ErrorCodes::kPasteNoEntries));
+    QVERIFY(!no_entries.isEmpty());
+    QVERIFY(!no_entries.contains(QStringLiteral("paste.no_entries")));
+
+    const QString simulate_failed = quickdeck::UserMessages::translate_error(
+        QString::fromLatin1(quickdeck::ErrorCodes::kPasteSimulateFailed));
+    QVERIFY(!simulate_failed.isEmpty());
+    QVERIFY(!simulate_failed.contains(QStringLiteral("paste.simulate_failed")));
 }
 
 QTEST_MAIN(UserMessagesTest)

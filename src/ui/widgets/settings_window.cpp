@@ -74,8 +74,10 @@ void SettingsWindow::build_ui()
     auto *hotkey_layout = new QFormLayout(hotkey_tab);
     launcher_hotkey_ = new QKeySequenceEdit();
     clipboard_hotkey_ = new QKeySequenceEdit();
+    quick_paste_hotkey_ = new QKeySequenceEdit();
     hotkey_layout->addRow(tr("Launcher hotkey"), launcher_hotkey_);
     hotkey_layout->addRow(tr("Clipboard hotkey"), clipboard_hotkey_);
+    hotkey_layout->addRow(tr("Quick paste hotkey"), quick_paste_hotkey_);
     tabs_->addTab(hotkey_tab, QString());
 
     auto *clipboard_tab = new QWidget();
@@ -85,9 +87,11 @@ void SettingsWindow::build_ui()
     max_chars_ = new QSpinBox();
     max_chars_->setRange(100, 1000000);
     monitoring_enabled_ = new QCheckBox();
+    simulate_paste_on_activate_ = new QCheckBox();
     clipboard_layout->addRow(tr("Max entries"), max_entries_);
     clipboard_layout->addRow(tr("Max characters"), max_chars_);
     clipboard_layout->addRow(monitoring_enabled_);
+    clipboard_layout->addRow(simulate_paste_on_activate_);
     tabs_->addTab(clipboard_tab, QString());
 
     auto *root = new QVBoxLayout(this);
@@ -146,6 +150,9 @@ void SettingsWindow::retranslate_ui()
         if (QLabel *label = qobject_cast<QLabel *>(hotkey_layout->labelForField(clipboard_hotkey_))) {
             label->setText(tr("Clipboard hotkey"));
         }
+        if (QLabel *label = qobject_cast<QLabel *>(hotkey_layout->labelForField(quick_paste_hotkey_))) {
+            label->setText(tr("Quick paste hotkey"));
+        }
     }
 
     if (auto *clipboard_layout = qobject_cast<QFormLayout *>(tabs_->widget(2)->layout())) {
@@ -157,6 +164,7 @@ void SettingsWindow::retranslate_ui()
         }
     }
     monitoring_enabled_->setText(tr("Enable clipboard monitoring"));
+    simulate_paste_on_activate_->setText(tr("Simulate paste when re-copying from overlay"));
 
     save_button_->setText(tr("Save"));
     cancel_button_->setText(tr("Cancel"));
@@ -182,6 +190,24 @@ bool SettingsWindow::validate_hotkeys() const
         launcher_hotkey_->keySequence().toString(QKeySequence::PortableText);
     const QString new_clipboard =
         clipboard_hotkey_->keySequence().toString(QKeySequence::PortableText);
+    const QString new_quick_paste =
+        quick_paste_hotkey_->keySequence().toString(QKeySequence::PortableText);
+
+    const QStringList new_hotkeys = {new_launcher, new_clipboard, new_quick_paste};
+    for (int i = 0; i < new_hotkeys.size(); ++i) {
+        if (new_hotkeys.at(i).isEmpty()) {
+            continue;
+        }
+        for (int j = i + 1; j < new_hotkeys.size(); ++j) {
+            if (!new_hotkeys.at(j).isEmpty() && new_hotkeys.at(i) == new_hotkeys.at(j)) {
+                const QMessageBox::StandardButton answer = QMessageBox::warning(
+                    const_cast<SettingsWindow *>(this), tr("Duplicate Hotkeys"),
+                    tr("Shortcuts must be unique. Save anyway?"),
+                    QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+                return answer == QMessageBox::Yes;
+            }
+        }
+    }
 
     auto needs_probe = [&](const QString &stored, const QString &updated) {
         return stored != updated;
@@ -215,12 +241,21 @@ bool SettingsWindow::validate_hotkeys() const
         }
     }
 
-    if (new_launcher == new_clipboard) {
-        const QMessageBox::StandardButton answer = QMessageBox::warning(
-            const_cast<SettingsWindow *>(this), tr("Duplicate Hotkeys"),
-            tr("Launcher and clipboard shortcuts cannot be identical. Save anyway?"),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        return answer == QMessageBox::Yes;
+    const Result<QString> stored_quick_paste =
+        store.get_string(QStringLiteral("clipboard.quick_paste_hotkey"), QStringLiteral("Ctrl+Alt+V"));
+    if (stored_quick_paste.is_ok() &&
+        needs_probe(stored_quick_paste.value(), new_quick_paste) && !new_quick_paste.isEmpty()) {
+        const Result<bool> quick_paste_ok =
+            context_.platform().is_hotkey_available(quick_paste_hotkey_->keySequence());
+        if (quick_paste_ok.is_err() || !quick_paste_ok.value()) {
+            const QMessageBox::StandardButton answer = QMessageBox::warning(
+                const_cast<SettingsWindow *>(this), tr("Hotkey Conflict"),
+                tr("Quick paste shortcut appears unavailable. Save anyway?"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (answer != QMessageBox::Yes) {
+                return false;
+            }
+        }
     }
 
     return true;
@@ -246,11 +281,16 @@ void SettingsWindow::load_values()
     clipboard_hotkey_->setKeySequence(QKeySequence(
         store.get_string(QStringLiteral("clipboard.hotkey"), QStringLiteral("Ctrl+Shift+V"))
             .value()));
+    quick_paste_hotkey_->setKeySequence(QKeySequence(
+        store.get_string(QStringLiteral("clipboard.quick_paste_hotkey"), QStringLiteral("Ctrl+Alt+V"))
+            .value()));
 
     max_entries_->setValue(store.get_int(QStringLiteral("clipboard.max_entries"), 200).value());
     max_chars_->setValue(store.get_int(QStringLiteral("clipboard.max_char_length"), 10000).value());
     monitoring_enabled_->setChecked(
         store.get_bool(QStringLiteral("clipboard.monitoring_enabled"), true).value());
+    simulate_paste_on_activate_->setChecked(
+        store.get_bool(QStringLiteral("clipboard.simulate_paste_on_activate"), false).value());
 }
 
 void SettingsWindow::save_values()
@@ -265,10 +305,14 @@ void SettingsWindow::save_values()
                      launcher_hotkey_->keySequence().toString(QKeySequence::PortableText));
     store.set_string(QStringLiteral("clipboard.hotkey"),
                      clipboard_hotkey_->keySequence().toString(QKeySequence::PortableText));
+    store.set_string(QStringLiteral("clipboard.quick_paste_hotkey"),
+                     quick_paste_hotkey_->keySequence().toString(QKeySequence::PortableText));
 
     store.set_int(QStringLiteral("clipboard.max_entries"), max_entries_->value());
     store.set_int(QStringLiteral("clipboard.max_char_length"), max_chars_->value());
     store.set_bool(QStringLiteral("clipboard.monitoring_enabled"), monitoring_enabled_->isChecked());
+    store.set_bool(QStringLiteral("clipboard.simulate_paste_on_activate"),
+                   simulate_paste_on_activate_->isChecked());
 
     context_.platform().set_auto_start_enabled(
         store.get_bool(QStringLiteral("general.auto_start"), false).value());

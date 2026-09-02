@@ -11,6 +11,8 @@ inline constexpr char kOpenPathFailed[] = "open.path_failed";
 inline constexpr char kPathNotFound[] = "path.not_found";
 inline constexpr char kIndexScanFailed[] = "index.scan_failed";
 inline constexpr char kIndexUpsertFailed[] = "index.upsert_failed";
+inline constexpr char kPasteSimulateFailed[] = "paste.simulate_failed";
+inline constexpr char kPasteNoEntries[] = "paste.no_entries";
 } // namespace ErrorCodes
 
 class UserMessages {

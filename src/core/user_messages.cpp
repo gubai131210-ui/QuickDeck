@@ -31,6 +31,12 @@ QString UserMessages::translate_error(const QString &error_code)
     if (error_code == QLatin1String(ErrorCodes::kIndexUpsertFailed)) {
         return QCoreApplication::translate("UserMessages", "Could not save the application index.");
     }
+    if (error_code == QLatin1String(ErrorCodes::kPasteSimulateFailed)) {
+        return QCoreApplication::translate("UserMessages", "Could not simulate paste to the active window.");
+    }
+    if (error_code == QLatin1String(ErrorCodes::kPasteNoEntries)) {
+        return QCoreApplication::translate("UserMessages", "No clipboard history entries to paste.");
+    }
     return error_code;
 }
 

@@ -90,7 +90,7 @@ These are **accepted V1 shortcuts**. Fix when adding cross-platform or splitting
 |-------|----------|---------------------------|
 | Win TUs always in Core | `CMakeLists.txt` | Gate `win_platform_services` behind `WIN32` |
 | Platform leak | `icon_cache.cpp`, `app_display.cpp` → `win_lnk_resolver` | Add `resolve_shortcut()` to `IPlatformServices` |
-| Inverted dependency | `sqlite_app_repository` → `services/search_ranking` | Move ranking to `core/search_ranking` |
+| ~~Inverted dependency~~ | ~~`sqlite_app_repository` → `services/search_ranking`~~ | **Fixed Phase 4** — `core/search_ranking` |
 | Stub imports Win | `stub_platform_services` → `win_hotkey_mapper` | Extract shared hotkey parser to `core/` |
 | Single static lib | All layers in `QuickDeckCore` | Optional: split `QuickDeckData` / `QuickDeckPlatform` targets |
 | `ApplicationContext` hub | Concrete types in header | Factory or interface narrowing for tests |

@@ -40,6 +40,7 @@ public:
     Q_INVOKABLE void activate_selected(int index);
     Q_INVOKABLE void move_selection(int delta);
     Q_INVOKABLE void toggle_pin_at(int index);
+    Q_INVOKABLE void quick_paste_latest();
     Q_INVOKABLE void reload_settings();
     Q_INVOKABLE void register_hotkeys();
 
@@ -55,6 +56,7 @@ signals:
     void closeOnBlurChanged();
     void hideRequested();
     void launchFailed(const QString &app_name, const QString &error_message);
+    void quickPasteFailed(const QString &error_code);
 
 private:
     void refresh_results();

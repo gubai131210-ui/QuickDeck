@@ -18,7 +18,7 @@ public:
     Result<void> set_pinned(qint64 id, bool pinned) override;
     Result<void> remove(qint64 id) override;
     Result<void> clear_unpinned() override;
-    Result<void> enforce_retention(int max_entries, int max_age_days) override;
+    Result<int> enforce_retention(int max_entries, int max_age_days) override;
     Result<bool> is_duplicate(const QString &content) override;
     Result<int> count() override;
 

@@ -21,6 +21,7 @@ public:
 
 signals:
     void entry_recorded(qint64 entry_id);
+    void entries_trimmed(int removed_count);
     void monitoring_paused_changed(bool paused);
 
 private:

@@ -1,10 +1,12 @@
 #include "app/application_context.h"
 #include "core/domain/types.h"
+#include "core/user_messages.h"
 #include "test_helpers.h"
 #include "ui/launcher_controller.h"
 #include "ui/models/app_search_model.h"
 #include "ui/models/clipboard_history_model.h"
 
+#include <QClipboard>
 #include <QDateTime>
 #include <QDir>
 #include <QGuiApplication>
@@ -21,6 +23,8 @@ private slots:
     void move_selection_wraps_with_seeded_apps();
     void toggle_pin_updates_pinned_state();
     void toggle_clipboard_pin_updates_pinned_state();
+    void quick_paste_without_entries_emits_failure();
+    void quick_paste_with_entry_sets_clipboard();
     void reload_settings_does_not_crash();
 };
 
@@ -182,6 +186,42 @@ void LauncherControllerTest::toggle_clipboard_pin_updates_pinned_state()
                 ->data(controller.clipboard_model()->index(0),
                        quickdeck::ClipboardHistoryModel::IsPinnedRole)
                 .toBool());
+}
+
+void LauncherControllerTest::quick_paste_without_entries_emits_failure()
+{
+    QTemporaryDir temp_dir;
+    QVERIFY(temp_dir.isValid());
+
+    quickdeck::ApplicationContext context;
+    QVERIFY(quickdeck::test::initialize_isolated_context(context, isolated_database_path(temp_dir))
+                .is_ok());
+
+    quickdeck::LauncherController controller(context);
+    QSignalSpy failure_spy(&controller, &quickdeck::LauncherController::quickPasteFailed);
+
+    controller.quick_paste_latest();
+    QCOMPARE(failure_spy.count(), 1);
+    QCOMPARE(failure_spy.at(0).at(0).toString(),
+             QString::fromLatin1(quickdeck::ErrorCodes::kPasteNoEntries));
+}
+
+void LauncherControllerTest::quick_paste_with_entry_sets_clipboard()
+{
+    QTemporaryDir temp_dir;
+    QVERIFY(temp_dir.isValid());
+
+    quickdeck::ApplicationContext context;
+    QVERIFY(quickdeck::test::initialize_isolated_context(context, isolated_database_path(temp_dir))
+                .is_ok());
+    QVERIFY(quickdeck::test::seed_clipboard_text(context.database().database(),
+                                                 QStringLiteral("latest clip"))
+                .is_ok());
+
+    quickdeck::LauncherController controller(context);
+    controller.quick_paste_latest();
+
+    QCOMPARE(QGuiApplication::clipboard()->text(), QStringLiteral("latest clip"));
 }
 
 void LauncherControllerTest::reload_settings_does_not_crash()

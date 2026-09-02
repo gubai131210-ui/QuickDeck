@@ -168,8 +168,10 @@ Result<void> SqliteClipboardRepository::clear_unpinned()
     return Result<void>::ok();
 }
 
-Result<void> SqliteClipboardRepository::enforce_retention(int max_entries, int max_age_days)
+Result<int> SqliteClipboardRepository::enforce_retention(int max_entries, int max_age_days)
 {
+    int removed = 0;
+
     if (max_age_days > 0) {
         const qint64 cutoff = QDateTime::currentSecsSinceEpoch() - max_age_days * 86400LL;
         QSqlQuery age_query(db_);
@@ -177,24 +179,25 @@ Result<void> SqliteClipboardRepository::enforce_retention(int max_entries, int m
             "DELETE FROM clipboard_entries WHERE is_pinned = 0 AND created_at < ?"));
         age_query.addBindValue(cutoff);
         if (!age_query.exec()) {
-            return Result<void>::fail(age_query.lastError().text());
+            return Result<int>::fail(age_query.lastError().text());
         }
+        removed += age_query.numRowsAffected();
     }
 
     if (max_entries <= 0) {
-        return Result<void>::ok();
+        return Result<int>::ok(removed);
     }
 
     QSqlQuery count_query(db_);
     if (!count_query.exec(QStringLiteral(
             "SELECT COUNT(*) FROM clipboard_entries WHERE is_pinned = 0")) ||
         !count_query.next()) {
-        return Result<void>::fail(count_query.lastError().text());
+        return Result<int>::fail(count_query.lastError().text());
     }
 
     const int unpinned_count = count_query.value(0).toInt();
     if (unpinned_count <= max_entries) {
-        return Result<void>::ok();
+        return Result<int>::ok(removed);
     }
 
     const int delete_count = unpinned_count - max_entries;
@@ -206,9 +209,10 @@ Result<void> SqliteClipboardRepository::enforce_retention(int max_entries, int m
         ")"));
     trim_query.addBindValue(delete_count);
     if (!trim_query.exec()) {
-        return Result<void>::fail(trim_query.lastError().text());
+        return Result<int>::fail(trim_query.lastError().text());
     }
-    return Result<void>::ok();
+    removed += trim_query.numRowsAffected();
+    return Result<int>::ok(removed);
 }
 
 Result<bool> SqliteClipboardRepository::is_duplicate(const QString &content)

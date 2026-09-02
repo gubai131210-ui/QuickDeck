@@ -4,7 +4,7 @@ Last updated: 2026-09-02
 
 ## Version
 
-- App version string: `0.4.0` (in `Application::initialize`)
+- App version string: `0.5.0` (in `Application::initialize`)
 - V1 target: Windows only
 - Qt kit: 6.11 MinGW (user local build)
 
@@ -15,7 +15,7 @@ Last updated: 2026-09-02
 | **1** | Scaffold, DB, migrations, core services | Done |
 | **2** | Hotkeys, QML overlay, tray, settings, migration runner | Done — see [PHASE2.md](PHASE2.md) |
 | **3** | i18n, theme, indexer polish, icon cache, pin, error codes | Done (Iterations 1–4) — see [PHASE3.md](PHASE3.md) |
-| **4** | Clipboard monitor UX polish, simulated paste, retention UI | Not started |
+| **4** | Quick paste, simulate paste, retention toast, search_ranking→core | Done — see [PHASE4.md](PHASE4.md) |
 | **5** | First-run polish, performance, release packaging | Not started |
 
 ## V1 Feature Checklist
@@ -36,10 +36,12 @@ Last updated: 2026-09-02
 | en / zh_CN i18n | Done |
 | Mint Sky glass overlay UI | Done |
 | User-facing error messages | Done (codes in `UserMessages`) |
-| Simulated paste (`Ctrl+Alt+V` etc.) | **Not wired** — platform stub exists |
+| Quick paste hotkey (`Ctrl+Alt+V` default) | Done |
+| Simulate paste on overlay activate | Done |
+| Clipboard retention tray feedback | Done |
 | macOS / Linux | Out of scope V1 |
 
-## Automated Tests (10/10)
+## Automated Tests (11/11)
 
 | Test | Covers |
 |------|--------|
@@ -47,12 +49,13 @@ Last updated: 2026-09-02
 | SearchRankingTest | Match + usage + recency scoring |
 | PathResolverTest | Path detection and resolve |
 | WinHotkeyMapperTest | QKeySequence → Win32 modifiers/VK |
-| LauncherControllerTest | Overlay state, app + clipboard pin |
+| LauncherControllerTest | Overlay state, pin, quick paste |
 | ClipboardDeduplicationTest | Dedup query |
+| ClipboardRetentionTest | Retention trim + removed count |
 | LocaleServiceTest | Language normalize/display |
 | AppScannerTest | `.lnk` root scan |
 | IconCacheTest | PNG icon cache (Windows) |
-| UserMessagesTest | Error code translation |
+| UserMessagesTest | Error code translation (incl. paste) |
 
 Run: configure in Qt Creator, then `ctest` from build dir.
 
@@ -65,6 +68,7 @@ User builds in Qt Creator (Chinese path — agent does not run production builds
 3. Settings → Refresh index — tray toast (including 0 apps message)
 4. Pin with `Ctrl+Shift+P` in both modes
 5. Launch app — icon in list after index refresh
+6. `Ctrl+Alt+V` quick paste; retention toast when over max entries
 
 ## Repository
 
@@ -73,8 +77,6 @@ User builds in Qt Creator (Chinese path — agent does not run production builds
 
 ## Next Recommended Work
 
-1. Wire simulated paste hotkey (V1 platform code exists)
-2. Clipboard retention enforcement UI feedback
-3. Move `search_ranking` to `core/` (debt cleanup)
-4. Release packaging (windeployqt, installer)
-5. Optional: repository integration tests with in-memory SQLite
+1. Release packaging (windeployqt, installer)
+2. Optional: repository integration tests with in-memory SQLite
+3. Performance profiling on large app catalogs
