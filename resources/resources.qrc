@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <RCC>
     <qresource prefix="/icons">
-        <file alias="quickdeck.svg">../../resources/icons/quickdeck.svg</file>
+        <file alias="quickdeck.svg">icons/quickdeck.svg</file>
     </qresource>
 </RCC>

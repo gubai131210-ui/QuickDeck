@@ -14,7 +14,14 @@ namespace quickdeck {
 
 ApplicationContext::ApplicationContext() = default;
 
-ApplicationContext::~ApplicationContext() = default;
+ApplicationContext::~ApplicationContext()
+{
+    clipboard_monitor_.reset();
+    search_service_.reset();
+    app_indexer_.reset();
+    platform_.reset();
+    database_.reset();
+}
 
 Result<void> ApplicationContext::initialize(const QString &database_path)
 {

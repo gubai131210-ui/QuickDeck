@@ -85,7 +85,13 @@ target_link_libraries(QuickDeckCore
         Qt6::Qml
 )
 
-qt_add_qml_module(QuickDeckLauncher
+qt_add_executable(QuickDeck
+    WIN32 MACOSX_BUNDLE
+    src/app/main.cpp
+    resources/resources.qrc
+)
+
+qt_add_qml_module(QuickDeck
     URI QuickDeckLauncher
     VERSION 1.0
     QML_FILES
@@ -93,16 +99,9 @@ qt_add_qml_module(QuickDeckLauncher
     NO_PLUGIN
 )
 
-qt_add_executable(QuickDeck
-    WIN32 MACOSX_BUNDLE
-    src/app/main.cpp
-    resources/resources.qrc
-)
-
 target_link_libraries(QuickDeck
     PRIVATE
         QuickDeckCore
-        QuickDeckLauncher
 )
 
 add_custom_command(TARGET QuickDeck POST_BUILD
