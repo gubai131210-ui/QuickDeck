@@ -119,10 +119,7 @@ void SettingsWindow::build_ui()
     });
     connect(cancel_button_, &QPushButton::clicked, this, &QDialog::reject);
     connect(refresh_button_, &QPushButton::clicked, this, [this]() {
-        const Result<int> result = context_.app_indexer().refresh_catalog();
-        if (result.is_err()) {
-            QMessageBox::warning(this, tr("Index Refresh"), result.error());
-        }
+        context_.app_indexer().refresh_catalog();
     });
 }
 

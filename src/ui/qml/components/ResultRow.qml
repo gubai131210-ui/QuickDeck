@@ -18,26 +18,40 @@ ItemDelegate {
     contentItem: Row {
         spacing: QuickDeckTheme.spaceSm
 
-        Rectangle {
+        Item {
             width: 34
             height: 34
-            radius: QuickDeckTheme.radiusPill
-            color: QuickDeckTheme.primarySoft
             anchors.verticalCenter: parent.verticalCenter
 
-            Label {
-                anchors.centerIn: parent
-                text: titleLabel.text.length > 0 ? titleLabel.text.charAt(0).toUpperCase() : "?"
-                color: QuickDeckTheme.primary
-                font.bold: true
-                font.pixelSize: 14
+            Image {
+                id: iconImage
+                anchors.fill: parent
+                visible: root.iconSource.length > 0
+                source: root.iconSource
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                visible: !iconImage.visible
+                radius: QuickDeckTheme.radiusPill
+                color: QuickDeckTheme.primarySoft
+
+                Label {
+                    anchors.centerIn: parent
+                    text: titleLabel.text.length > 0 ? titleLabel.text.charAt(0).toUpperCase() : "?"
+                    color: QuickDeckTheme.primary
+                    font.bold: true
+                    font.pixelSize: 14
+                }
             }
         }
 
         Column {
             spacing: 2
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 46
+            width: parent.width - 46 - (pinBadge.visible ? 22 : 0)
 
             Label {
                 id: titleLabel
@@ -57,8 +71,27 @@ ItemDelegate {
                 elide: Text.ElideMiddle
             }
         }
+
+        Label {
+            id: pinBadge
+            anchors.verticalCenter: parent.verticalCenter
+            visible: root.isPinned
+            text: "★"
+            color: QuickDeckTheme.primary
+            font.pixelSize: 14
+            ToolTip.visible: pinBadgeHover.hovered
+            ToolTip.text: qsTr("Pinned")
+
+            MouseArea {
+                id: pinBadgeHover
+                anchors.fill: parent
+                hoverEnabled: true
+            }
+        }
     }
 
     property string title: ""
     property string subtitle: ""
+    property string iconSource: ""
+    property bool isPinned: false
 }

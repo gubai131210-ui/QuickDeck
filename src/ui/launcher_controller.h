@@ -39,6 +39,7 @@ public:
     Q_INVOKABLE void confirm_hide();
     Q_INVOKABLE void activate_selected(int index);
     Q_INVOKABLE void move_selection(int delta);
+    Q_INVOKABLE void toggle_pin_at(int index);
     Q_INVOKABLE void reload_settings();
     Q_INVOKABLE void register_hotkeys();
 

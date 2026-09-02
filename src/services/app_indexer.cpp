@@ -1,5 +1,7 @@
 #include "services/app_indexer.h"
 
+#include "services/app_scanner.h"
+#include "services/icon_cache.h"
 #include "services/logger.h"
 
 #include <QDateTime>
@@ -10,7 +12,7 @@
 #include <QStandardPaths>
 
 #ifdef Q_OS_WIN
-#include <QDirIterator>
+#include <QSettings>
 #endif
 
 namespace quickdeck {
@@ -33,28 +35,15 @@ Result<QList<AppEntry>> AppIndexer::scan_windows_apps()
         QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation),
     };
 
-    QSet<QString> seen_paths;
-    for (const QString &root : start_menu_roots) {
-        QDirIterator it(root, {QStringLiteral("*.lnk")}, QDir::Files,
-                        QDirIterator::Subdirectories);
-        while (it.hasNext()) {
-            const QString link_path = it.next();
-            QFileInfo link_info(link_path);
-            AppEntry entry;
-            entry.name = link_info.completeBaseName();
-            entry.executable_path = link_path;
-            entry.platform_id = QStringLiteral("win");
-            entry.indexed_at = now;
-            entry.created_at = now;
-            entry.updated_at = now;
-            entry.source_mtime = link_info.lastModified().toSecsSinceEpoch();
+    const Result<QList<AppEntry>> lnk_entries = scan_lnk_roots(start_menu_roots);
+    if (lnk_entries.is_err()) {
+        return lnk_entries;
+    }
+    entries = lnk_entries.value();
 
-            if (seen_paths.contains(entry.executable_path)) {
-                continue;
-            }
-            seen_paths.insert(entry.executable_path);
-            entries.append(entry);
-        }
+    QSet<QString> seen_paths;
+    for (const AppEntry &entry : entries) {
+        seen_paths.insert(entry.executable_path);
     }
 
     QSettings uninstall(
@@ -109,14 +98,26 @@ Result<int> AppIndexer::refresh_catalog()
 
     const Result<QList<AppEntry>> scan_result = scan_windows_apps();
     if (scan_result.is_err()) {
-        emit indexing_failed(scan_result.error());
-        return Result<int>::fail(scan_result.error());
+        QD_LOG_WARN(scan_result.error());
+        emit indexing_failed(QStringLiteral("scan_failed"));
+        return Result<int>::fail(QStringLiteral("scan_failed"));
     }
 
-    const Result<void> upsert_result = apps_.upsert_batch(scan_result.value());
+    QList<AppEntry> enriched;
+    enriched.reserve(scan_result.value().size());
+    for (AppEntry entry : scan_result.value()) {
+        const Result<QString> icon_path = IconCache::cache_icon_for_entry(entry);
+        if (icon_path.is_ok()) {
+            entry.icon_cache_path = icon_path.value();
+        }
+        enriched.append(entry);
+    }
+
+    const Result<void> upsert_result = apps_.upsert_batch(enriched);
     if (upsert_result.is_err()) {
-        emit indexing_failed(upsert_result.error());
-        return Result<int>::fail(upsert_result.error());
+        QD_LOG_WARN(upsert_result.error());
+        emit indexing_failed(QStringLiteral("upsert_failed"));
+        return Result<int>::fail(QStringLiteral("upsert_failed"));
     }
 
     settings_.set_int(QStringLiteral("indexer.last_refresh_at"),

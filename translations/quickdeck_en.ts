@@ -208,6 +208,21 @@
         <source>Could not launch %1: %2</source>
         <translation>Could not launch %1: %2</translation>
     </message>
+    <message>
+        <source>Indexed %1 applications</source>
+        <translation>Indexed %1 applications</translation>
+    </message>
+    <message>
+        <source>Could not refresh the application index.</source>
+        <translation>Could not refresh the application index.</translation>
+    </message>
+</context>
+<context>
+    <name>ResultRow</name>
+    <message>
+        <source>Pinned</source>
+        <translation>Pinned</translation>
+    </message>
 </context>
 <context>
     <name>QDialogButtonBox</name>

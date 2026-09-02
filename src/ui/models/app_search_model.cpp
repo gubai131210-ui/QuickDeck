@@ -2,6 +2,8 @@
 
 #include "ui/app_display.h"
 
+#include <QUrl>
+
 namespace quickdeck {
 
 AppSearchModel::AppSearchModel(QObject *parent)
@@ -33,7 +35,10 @@ QVariant AppSearchModel::data(const QModelIndex &index, int role) const
     case SubtitleRole:
         return app_entry_subtitle(entry);
     case IconRole:
-        return entry.icon_cache_path;
+        if (entry.icon_cache_path.isEmpty()) {
+            return {};
+        }
+        return QUrl::fromLocalFile(entry.icon_cache_path).toString();
     case IsPinnedRole:
         return entry.is_pinned;
     default:

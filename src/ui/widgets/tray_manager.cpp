@@ -77,4 +77,24 @@ void TrayManager::show_launch_failed(const QString &app_name, const QString &err
                       5000);
 }
 
+void TrayManager::show_index_refresh_success(int app_count)
+{
+    if (app_count <= 0) {
+        return;
+    }
+    tray_.showMessage(tr("Index Refresh"),
+                      tr("Indexed %1 applications").arg(app_count),
+                      QSystemTrayIcon::Information,
+                      4000);
+}
+
+void TrayManager::show_index_refresh_failed(const QString &error_code)
+{
+    Q_UNUSED(error_code)
+    tray_.showMessage(tr("Index Refresh"),
+                      tr("Could not refresh the application index."),
+                      QSystemTrayIcon::Warning,
+                      5000);
+}
+
 } // namespace quickdeck

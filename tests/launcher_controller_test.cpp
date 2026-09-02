@@ -2,6 +2,7 @@
 #include "core/domain/types.h"
 #include "test_helpers.h"
 #include "ui/launcher_controller.h"
+#include "ui/models/app_search_model.h"
 
 #include <QDateTime>
 #include <QDir>
@@ -17,6 +18,7 @@ private slots:
     void show_search_resets_selection_and_visible();
     void dismiss_and_confirm_hide_cycle();
     void move_selection_wraps_with_seeded_apps();
+    void toggle_pin_updates_pinned_state();
     void reload_settings_does_not_crash();
 };
 
@@ -121,6 +123,32 @@ void LauncherControllerTest::move_selection_wraps_with_seeded_apps()
 
     controller.move_selection(1);
     QCOMPARE(controller.selected_index(), 0);
+}
+
+void LauncherControllerTest::toggle_pin_updates_pinned_state()
+{
+    QTemporaryDir temp_dir;
+    QVERIFY(temp_dir.isValid());
+
+    quickdeck::ApplicationContext context;
+    QVERIFY(quickdeck::test::initialize_isolated_context(context, isolated_database_path(temp_dir))
+                .is_ok());
+
+    quickdeck::AppEntry entry = make_app(QStringLiteral("PinMe"), QStringLiteral("C:/apps/pin.exe"));
+    QVERIFY(context.database().apps().upsert(entry).is_ok());
+
+    quickdeck::LauncherController controller(context);
+    controller.show_search();
+    QCOMPARE(controller.item_count(), 1);
+    QVERIFY(!controller.app_model()->data(controller.app_model()->index(0),
+                                          quickdeck::AppSearchModel::IsPinnedRole)
+                 .toBool());
+
+    controller.toggle_pin_at(0);
+    controller.show_search();
+    QVERIFY(controller.app_model()->data(controller.app_model()->index(0),
+                                       quickdeck::AppSearchModel::IsPinnedRole)
+                .toBool());
 }
 
 void LauncherControllerTest::reload_settings_does_not_crash()

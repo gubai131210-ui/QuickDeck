@@ -125,6 +125,8 @@ Window {
                     delegate: ResultRow {
                         title: launcher.modeValue === 0 ? model.name : model.preview
                         subtitle: launcher.modeValue === 0 ? model.subtitle : ""
+                        iconSource: launcher.modeValue === 0 ? model.iconPath : ""
+                        isPinned: launcher.modeValue === 0 && model.isPinned
                         highlighted: ListView.isCurrentItem
                         onClicked: resultList.currentIndex = index
                     }
@@ -146,6 +148,12 @@ Window {
     Shortcut {
         sequences: [StandardKey.Cancel]
         onActivated: launcher.dismiss()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+Shift+P"
+        enabled: launcher.visible && launcher.modeValue === 0 && resultList.count > 0
+        onActivated: launcher.toggle_pin_at(resultList.currentIndex)
     }
 
     Timer {

@@ -23,6 +23,8 @@ set(QUICKDECK_CORE_SOURCES
     src/platform/win/win_hotkey_mapper.cpp
     src/platform/win/win_platform_services.cpp
     src/services/app_indexer.cpp
+    src/services/app_scanner.cpp
+    src/services/icon_cache.cpp
     src/services/clipboard_monitor.cpp
     src/services/locale_service.cpp
     src/services/logger.cpp
@@ -54,6 +56,8 @@ set(QUICKDECK_CORE_HEADERS
     src/platform/win/win_hotkey_mapper.h
     src/platform/win/win_platform_services.h
     src/services/app_indexer.h
+    src/services/app_scanner.h
+    src/services/icon_cache.h
     src/services/clipboard_monitor.h
     src/services/locale_service.h
     src/services/logger.h

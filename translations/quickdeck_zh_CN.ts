@@ -208,6 +208,21 @@
         <source>Could not launch %1: %2</source>
         <translation>无法启动 %1：%2</translation>
     </message>
+    <message>
+        <source>Indexed %1 applications</source>
+        <translation>已索引 %1 个应用</translation>
+    </message>
+    <message>
+        <source>Could not refresh the application index.</source>
+        <translation>无法刷新应用索引。</translation>
+    </message>
+</context>
+<context>
+    <name>ResultRow</name>
+    <message>
+        <source>Pinned</source>
+        <translation>已置顶</translation>
+    </message>
 </context>
 <context>
     <name>QDialogButtonBox</name>

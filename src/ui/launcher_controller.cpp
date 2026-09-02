@@ -140,6 +140,30 @@ void LauncherController::move_selection(int delta)
     set_selected_index(next);
 }
 
+void LauncherController::toggle_pin_at(int index)
+{
+    if (mode_ != LauncherMode::Search || index < 0 || index >= app_results_.size()) {
+        return;
+    }
+
+    const AppEntry &entry = app_results_.at(index);
+    if (entry.id <= 0) {
+        return;
+    }
+
+    const Result<void> pin_result =
+        context_.database().apps().set_pinned(entry.id, !entry.is_pinned);
+    if (pin_result.is_err()) {
+        QD_LOG_WARN(pin_result.error());
+        return;
+    }
+
+    refresh_results();
+    if (selected_index_ != index && index < item_count_) {
+        set_selected_index(index);
+    }
+}
+
 void LauncherController::refresh_results()
 {
     if (mode_ == LauncherMode::Search) {

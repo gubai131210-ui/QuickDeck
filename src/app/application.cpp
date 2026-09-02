@@ -1,5 +1,6 @@
 #include "app/application.h"
 
+#include "services/app_indexer.h"
 #include "services/logger.h"
 #include "ui/widgets/first_run_wizard.h"
 
@@ -20,7 +21,7 @@ Result<void> Application::initialize()
 {
     QCoreApplication::setApplicationName(QStringLiteral("QuickDeck"));
     QCoreApplication::setOrganizationName(QStringLiteral("QuickDeck"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.3.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.4.0"));
 
     const Result<void> init_result = context_.initialize();
     if (init_result.is_err()) {
@@ -76,9 +77,15 @@ Result<void> Application::initialize()
     if (index_result.is_err()) {
         QD_LOG_WARN(index_result.error());
     }
+
+    connect(&context_.app_indexer(), &AppIndexer::indexing_finished, tray_.get(),
+            &TrayManager::show_index_refresh_success);
+    connect(&context_.app_indexer(), &AppIndexer::indexing_failed, tray_.get(),
+            &TrayManager::show_index_refresh_failed);
+
     context_.clipboard_monitor().start();
 
-    QD_LOG_INFO(QStringLiteral("QuickDeck started (Phase 3)"));
+    QD_LOG_INFO(QStringLiteral("QuickDeck started (Phase 3 iteration 3)"));
     return Result<void>::ok();
 }
 
