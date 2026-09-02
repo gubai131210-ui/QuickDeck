@@ -136,7 +136,7 @@ qt_add_translations(QuickDeck
         translations/quickdeck_en.ts
         translations/quickdeck_zh_CN.ts
     SOURCE_TARGETS QuickDeckCore
-    QML_FILES ${QUICKDECK_QML_FILES}
+    SOURCES ${QUICKDECK_QML_FILES}
     RESOURCE_PREFIX /i18n
 )
 
