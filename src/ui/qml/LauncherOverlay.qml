@@ -1,27 +1,28 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QuickDeckLauncher
 
 Window {
     id: root
-    width: 640
-    height: 420
+    width: 680
+    height: 460
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     color: "transparent"
     visible: launcher.visible
     x: (Screen.width - width) / 2
-    y: Screen.height * 0.2
+    y: Screen.height * 0.18
 
     property bool blurGraceActive: false
 
     opacity: chrome.opacityValue
 
-    Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+    Behavior on opacity { NumberAnimation { duration: QuickDeckTheme.animFast; easing.type: Easing.OutCubic } }
 
     QtObject {
         id: chrome
         property real opacityValue: launcher.visible ? 1.0 : 0.0
-        property real scaleValue: launcher.visible ? 1.0 : 0.96
+        property real scaleValue: launcher.visible ? 1.0 : 0.97
     }
 
     Item {
@@ -30,20 +31,67 @@ Window {
         scale: chrome.scaleValue
         transformOrigin: Item.Center
 
-        Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+        Behavior on scale { NumberAnimation { duration: QuickDeckTheme.animFast; easing.type: Easing.OutBack } }
 
-        Rectangle {
+        GlassPanel {
             anchors.fill: parent
-            radius: 12
-            color: Qt.rgba(0.12, 0.12, 0.12, 0.88)
-            border.color: Qt.rgba(1, 1, 1, 0.08)
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 16
-                spacing: 12
+                anchors.margins: QuickDeckTheme.spaceLg
+                spacing: QuickDeckTheme.spaceMd
 
-                TextField {
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: QuickDeckTheme.spaceSm
+
+                    Rectangle {
+                        Layout.preferredWidth: 36
+                        Layout.preferredHeight: 36
+                        radius: QuickDeckTheme.radiusPill
+                        color: QuickDeckTheme.primarySoft
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: launcher.modeValue === 0 ? "⌕" : "⎘"
+                            color: QuickDeckTheme.primary
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        Label {
+                            text: launcher.modeValue === 0
+                                  ? qsTr("Search Mode")
+                                  : qsTr("Clipboard Mode")
+                            color: QuickDeckTheme.textPrimary
+                            font.pixelSize: 16
+                            font.weight: Font.DemiBold
+                        }
+
+                        Label {
+                            text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
+                            color: QuickDeckTheme.textSecondary
+                            font.pixelSize: 12
+                        }
+                    }
+
+                    Label {
+                        text: launcher.itemCount
+                        color: QuickDeckTheme.textMuted
+                        font.pixelSize: 12
+                        padding: 8
+                        background: Rectangle {
+                            radius: QuickDeckTheme.radiusPill
+                            color: QuickDeckTheme.fieldFill
+                        }
+                    }
+                }
+
+                SearchField {
                     id: searchField
                     Layout.fillWidth: true
                     placeholderText: launcher.modeValue === 0
@@ -64,45 +112,31 @@ Window {
                     Keys.onEscapePressed: launcher.dismiss()
                 }
 
-                Label {
-                    text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
-                    color: "#cccccc"
-                }
-
                 ListView {
                     id: resultList
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
+                    spacing: 6
                     model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
                     currentIndex: launcher.selectedIndex
                     onCurrentIndexChanged: launcher.selectedIndex = currentIndex
-                    highlight: Rectangle {
-                        color: Qt.rgba(1, 1, 1, 0.08)
-                        radius: 6
-                    }
-                    highlightMoveDuration: 80
-                    delegate: ItemDelegate {
-                        width: resultList.width
+
+                    delegate: ResultRow {
+                        title: launcher.modeValue === 0 ? model.name : model.preview
+                        subtitle: launcher.modeValue === 0 ? model.path : ""
                         highlighted: ListView.isCurrentItem
-                        contentItem: Column {
-                            spacing: 2
-                            Label {
-                                text: launcher.modeValue === 0 ? model.name : model.preview
-                                color: "white"
-                                elide: Text.ElideRight
-                                width: parent.width
-                            }
-                            Label {
-                                visible: launcher.modeValue === 0
-                                text: model.path
-                                color: "#888888"
-                                font.pixelSize: 11
-                                elide: Text.ElideMiddle
-                                width: parent.width
-                            }
-                        }
                         onClicked: resultList.currentIndex = index
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+                        visible: resultList.count === 0
+                        text: launcher.modeValue === 0
+                              ? qsTr("No applications found")
+                              : qsTr("No clipboard entries")
+                        color: QuickDeckTheme.textMuted
+                        font.pixelSize: 14
                     }
                 }
             }
@@ -135,13 +169,13 @@ Window {
                 blurGraceTimer.restart()
             } else {
                 chrome.opacityValue = 0.0
-                chrome.scaleValue = 0.96
+                chrome.scaleValue = 0.97
             }
         }
 
         function onHideRequested() {
             chrome.opacityValue = 0.0
-            chrome.scaleValue = 0.96
+            chrome.scaleValue = 0.97
             hideTimer.restart()
         }
 
@@ -152,7 +186,7 @@ Window {
 
     Timer {
         id: hideTimer
-        interval: 150
+        interval: QuickDeckTheme.animNormal
         repeat: false
         onTriggered: launcher.confirm_hide()
     }

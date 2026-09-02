@@ -23,33 +23,50 @@ TrayManager::TrayManager(ApplicationContext &context,
 Result<void> TrayManager::initialize()
 {
     tray_.setIcon(QIcon(QStringLiteral(":/icons/quickdeck.svg")));
-    tray_.setToolTip(tr("QuickDeck"));
     build_menu();
+    retranslate_ui();
     tray_.show();
     return Result<void>::ok();
 }
 
 void TrayManager::build_menu()
 {
-    auto *menu = new QMenu();
+    menu_ = new QMenu();
 
-    auto *search_action = menu->addAction(tr("Open Search"));
-    connect(search_action, &QAction::triggered, &launcher_, &LauncherController::show_search);
+    search_action_ = menu_->addAction(QString());
+    connect(search_action_, &QAction::triggered, &launcher_, &LauncherController::show_search);
 
-    auto *clipboard_action = menu->addAction(tr("Open Clipboard"));
-    connect(clipboard_action, &QAction::triggered, &launcher_, &LauncherController::show_clipboard);
+    clipboard_action_ = menu_->addAction(QString());
+    connect(clipboard_action_, &QAction::triggered, &launcher_, &LauncherController::show_clipboard);
 
-    menu->addSeparator();
+    menu_->addSeparator();
 
-    auto *settings_action = menu->addAction(tr("Settings"));
-    connect(settings_action, &QAction::triggered, &settings_, &SettingsWindow::show);
+    settings_action_ = menu_->addAction(QString());
+    connect(settings_action_, &QAction::triggered, &settings_, &SettingsWindow::show);
 
-    menu->addSeparator();
+    menu_->addSeparator();
 
-    auto *quit_action = menu->addAction(tr("Quit"));
-    connect(quit_action, &QAction::triggered, qApp, &QApplication::quit);
+    quit_action_ = menu_->addAction(QString());
+    connect(quit_action_, &QAction::triggered, qApp, &QApplication::quit);
 
-    tray_.setContextMenu(menu);
+    tray_.setContextMenu(menu_);
+}
+
+void TrayManager::retranslate_ui()
+{
+    tray_.setToolTip(tr("QuickDeck"));
+    if (search_action_ != nullptr) {
+        search_action_->setText(tr("Open Search"));
+    }
+    if (clipboard_action_ != nullptr) {
+        clipboard_action_->setText(tr("Open Clipboard"));
+    }
+    if (settings_action_ != nullptr) {
+        settings_action_->setText(tr("Settings"));
+    }
+    if (quit_action_ != nullptr) {
+        quit_action_->setText(tr("Quit"));
+    }
 }
 
 } // namespace quickdeck

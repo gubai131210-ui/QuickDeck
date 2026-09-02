@@ -4,7 +4,7 @@ project(QuickDeck LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Quick Qml Sql Test)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets Quick Qml Sql Test LinguistTools)
 
 qt_standard_project_setup()
 
@@ -24,6 +24,7 @@ set(QUICKDECK_CORE_SOURCES
     src/platform/win/win_platform_services.cpp
     src/services/app_indexer.cpp
     src/services/clipboard_monitor.cpp
+    src/services/locale_service.cpp
     src/services/logger.cpp
     src/services/search_ranking.cpp
     src/services/search_service.cpp
@@ -53,6 +54,7 @@ set(QUICKDECK_CORE_HEADERS
     src/platform/win/win_platform_services.h
     src/services/app_indexer.h
     src/services/clipboard_monitor.h
+    src/services/locale_service.h
     src/services/logger.h
     src/services/search_ranking.h
     src/services/search_service.h
@@ -63,6 +65,11 @@ set(QUICKDECK_CORE_HEADERS
     src/ui/widgets/settings_window.h
     src/ui/widgets/tray_manager.h
 )
+
+if(WIN32)
+    list(APPEND QUICKDECK_CORE_SOURCES src/platform/win/win_lnk_resolver.cpp)
+    list(APPEND QUICKDECK_CORE_HEADERS src/platform/win/win_lnk_resolver.h)
+endif()
 
 add_library(QuickDeckCore STATIC
     ${QUICKDECK_CORE_SOURCES}
@@ -85,6 +92,18 @@ target_link_libraries(QuickDeckCore
         Qt6::Qml
 )
 
+if(WIN32)
+    target_link_libraries(QuickDeckCore PRIVATE shell32 ole32)
+endif()
+
+set(QUICKDECK_QML_FILES
+    src/ui/qml/LauncherOverlay.qml
+    src/ui/qml/theme/QuickDeckTheme.qml
+    src/ui/qml/components/GlassPanel.qml
+    src/ui/qml/components/SearchField.qml
+    src/ui/qml/components/ResultRow.qml
+)
+
 qt_add_executable(QuickDeck
     WIN32 MACOSX_BUNDLE
     src/app/main.cpp
@@ -93,8 +112,7 @@ qt_add_executable(QuickDeck
 qt_add_qml_module(QuickDeck
     URI QuickDeckLauncher
     VERSION 1.0
-    QML_FILES
-        src/ui/qml/LauncherOverlay.qml
+    QML_FILES ${QUICKDECK_QML_FILES}
     NO_PLUGIN
 )
 
@@ -103,6 +121,14 @@ qt_add_resources(QuickDeck "quickdeck_icons"
     BASE "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons"
     FILES
         resources/icons/quickdeck.svg
+)
+
+qt_add_translations(QuickDeck
+    TS_FILES
+        translations/quickdeck_en.ts
+        translations/quickdeck_zh_CN.ts
+    SOURCE_TARGETS QuickDeckCore
+    RESOURCE_PREFIX /i18n
 )
 
 target_link_libraries(QuickDeck

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/application_context.h"
+#include "services/locale_service.h"
 #include "ui/launcher_controller.h"
 #include "ui/widgets/settings_window.h"
 #include "ui/widgets/tray_manager.h"
@@ -23,6 +24,7 @@ public:
 
 private:
     ApplicationContext context_;
+    LocaleService locale_;
     std::unique_ptr<LauncherController> launcher_;
     std::unique_ptr<SettingsWindow> settings_;
     std::unique_ptr<TrayManager> tray_;

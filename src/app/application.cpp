@@ -19,16 +19,24 @@ Result<void> Application::initialize()
 {
     QCoreApplication::setApplicationName(QStringLiteral("QuickDeck"));
     QCoreApplication::setOrganizationName(QStringLiteral("QuickDeck"));
-    QCoreApplication::setApplicationVersion(QStringLiteral("0.2.0"));
+    QCoreApplication::setApplicationVersion(QStringLiteral("0.3.0"));
 
     const Result<void> init_result = context_.initialize();
     if (init_result.is_err()) {
         return init_result;
     }
 
+    const Result<void> locale_result = locale_.apply_saved_language(context_.settings());
+    if (locale_result.is_err()) {
+        QD_LOG_WARN(locale_result.error());
+    }
+
     launcher_ = std::make_unique<LauncherController>(context_);
-    settings_ = std::make_unique<SettingsWindow>(context_, *launcher_);
+    settings_ = std::make_unique<SettingsWindow>(context_, *launcher_, locale_, qml_engine_);
     tray_ = std::make_unique<TrayManager>(context_, *launcher_, *settings_);
+
+    connect(&locale_, &LocaleService::language_changed, tray_.get(), &TrayManager::retranslate_ui);
+    connect(&locale_, &LocaleService::language_changed, settings_.get(), &SettingsWindow::retranslate_ui);
 
     const Result<void> tray_result = tray_->initialize();
     if (tray_result.is_err()) {
@@ -65,7 +73,7 @@ Result<void> Application::initialize()
     }
     context_.clipboard_monitor().start();
 
-    QD_LOG_INFO(QStringLiteral("QuickDeck started (Phase 2)"));
+    QD_LOG_INFO(QStringLiteral("QuickDeck started (Phase 3)"));
     return Result<void>::ok();
 }
 

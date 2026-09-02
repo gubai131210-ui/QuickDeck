@@ -11,8 +11,8 @@ app/        → Application lifecycle, ApplicationContext
 core/       → Domain types, Result, repository interfaces, IPlatformServices
 data/       → DatabaseManager, migrations, SQLite repository adapters
 platform/   → Platform-specific adapters (win/ for V1)
-services/   → AppIndexer, ClipboardMonitor, SearchService, Logger
-ui/         → widgets/ (tray, settings), qml/ (launcher overlay)
+services/   → AppIndexer, ClipboardMonitor, SearchService, LocaleService, Logger
+ui/         → widgets/ (tray, settings), qml/ (launcher overlay + theme)
 ```
 
 **QuickDeckCore** static library holds everything except `main.cpp` and QML registration glue.
@@ -31,7 +31,8 @@ Read `CONTEXT.md` before naming types, tests, or UI strings.
 
 - `#pragma once`, member vars with trailing `_`, `CamelCase` types, `snake_case` functions
 - Use `Result<T>` for fallible operations; no bare `new`/`delete`
-- UI strings: `tr()` in C++, `qsTr()` in QML
+- UI strings: `tr()` in C++, `qsTr()` in QML — see `docs/I18N.md`
+- Visual tokens: `QuickDeckTheme.qml` — see `docs/UI_THEME.md`
 - Dependencies injected via `ApplicationContext`, not global singletons
 
 ## V1 Scope
