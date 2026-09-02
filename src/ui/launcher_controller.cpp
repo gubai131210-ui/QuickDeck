@@ -16,10 +16,14 @@ QList<AppEntry> merge_pinned_and_recent(const QList<AppEntry> &pinned,
                                         const QList<AppEntry> &recent,
                                         int limit)
 {
-    QList<AppEntry> merged = pinned;
+    QList<AppEntry> merged;
     QSet<qint64> seen;
     for (const AppEntry &entry : pinned) {
+        merged.append(entry);
         seen.insert(entry.id);
+        if (merged.size() >= limit) {
+            return merged;
+        }
     }
     for (const AppEntry &entry : recent) {
         if (seen.contains(entry.id)) {
