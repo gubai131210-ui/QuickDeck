@@ -119,7 +119,7 @@ void SettingsWindow::build_ui()
     });
     connect(cancel_button_, &QPushButton::clicked, this, &QDialog::reject);
     connect(refresh_button_, &QPushButton::clicked, this, [this]() {
-        context_.app_indexer().refresh_catalog();
+        context_.app_indexer().refresh_catalog(true);
     });
 }
 

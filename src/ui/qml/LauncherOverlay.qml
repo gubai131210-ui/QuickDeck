@@ -126,7 +126,7 @@ Window {
                         title: launcher.modeValue === 0 ? model.name : model.preview
                         subtitle: launcher.modeValue === 0 ? model.subtitle : ""
                         iconSource: launcher.modeValue === 0 ? model.iconPath : ""
-                        isPinned: launcher.modeValue === 0 && model.isPinned
+                        isPinned: model.isPinned
                         highlighted: ListView.isCurrentItem
                         onClicked: resultList.currentIndex = index
                     }
@@ -152,7 +152,7 @@ Window {
 
     Shortcut {
         sequence: "Ctrl+Shift+P"
-        enabled: launcher.visible && launcher.modeValue === 0 && resultList.count > 0
+        enabled: launcher.visible && resultList.count > 0
         onActivated: launcher.toggle_pin_at(resultList.currentIndex)
     }
 

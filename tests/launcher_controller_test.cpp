@@ -3,6 +3,7 @@
 #include "test_helpers.h"
 #include "ui/launcher_controller.h"
 #include "ui/models/app_search_model.h"
+#include "ui/models/clipboard_history_model.h"
 
 #include <QDateTime>
 #include <QDir>
@@ -19,6 +20,7 @@ private slots:
     void dismiss_and_confirm_hide_cycle();
     void move_selection_wraps_with_seeded_apps();
     void toggle_pin_updates_pinned_state();
+    void toggle_clipboard_pin_updates_pinned_state();
     void reload_settings_does_not_crash();
 };
 
@@ -148,6 +150,37 @@ void LauncherControllerTest::toggle_pin_updates_pinned_state()
     controller.show_search();
     QVERIFY(controller.app_model()->data(controller.app_model()->index(0),
                                        quickdeck::AppSearchModel::IsPinnedRole)
+                .toBool());
+}
+
+void LauncherControllerTest::toggle_clipboard_pin_updates_pinned_state()
+{
+    QTemporaryDir temp_dir;
+    QVERIFY(temp_dir.isValid());
+
+    quickdeck::ApplicationContext context;
+    QVERIFY(quickdeck::test::initialize_isolated_context(context, isolated_database_path(temp_dir))
+                .is_ok());
+
+    quickdeck::ClipboardEntry entry;
+    entry.content = QStringLiteral("clipboard pin test");
+    entry.preview = entry.content;
+    const quickdeck::Result<qint64> insert_result = context.database().clipboard().insert(entry);
+    QVERIFY(insert_result.is_ok());
+
+    quickdeck::LauncherController controller(context);
+    controller.show_clipboard();
+    QCOMPARE(controller.item_count(), 1);
+    QVERIFY(!controller.clipboard_model()
+                 ->data(controller.clipboard_model()->index(0),
+                        quickdeck::ClipboardHistoryModel::IsPinnedRole)
+                 .toBool());
+
+    controller.toggle_pin_at(0);
+    controller.show_clipboard();
+    QVERIFY(controller.clipboard_model()
+                ->data(controller.clipboard_model()->index(0),
+                       quickdeck::ClipboardHistoryModel::IsPinnedRole)
                 .toBool());
 }
 

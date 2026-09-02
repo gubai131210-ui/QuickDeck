@@ -1,5 +1,6 @@
 #include "platform/win/win_platform_services.h"
 
+#include "core/user_messages.h"
 #include "platform/win/win_hotkey_mapper.h"
 #include "services/logger.h"
 
@@ -133,12 +134,12 @@ Result<void> WinPlatformServices::launch_app(const AppEntry &app, bool as_admin)
     }
 
     if (!QFileInfo::exists(executable)) {
-        return Result<void>::fail(QStringLiteral("Failed to launch: %1").arg(executable));
+        return Result<void>::fail(QString::fromLatin1(ErrorCodes::kLaunchFileMissing));
     }
 
     if (!QProcess::startDetached(executable, arguments,
                                  working_dir.isEmpty() ? QString() : working_dir)) {
-        return Result<void>::fail(QStringLiteral("Failed to launch: %1").arg(executable));
+        return Result<void>::fail(QString::fromLatin1(ErrorCodes::kLaunchStartFailed));
     }
     return Result<void>::ok();
 }
@@ -146,7 +147,7 @@ Result<void> WinPlatformServices::launch_app(const AppEntry &app, bool as_admin)
 Result<void> WinPlatformServices::open_path(const QString &path)
 {
     if (!QDesktopServices::openUrl(QUrl::fromLocalFile(path))) {
-        return Result<void>::fail(QStringLiteral("Failed to open path: %1").arg(path));
+        return Result<void>::fail(QString::fromLatin1(ErrorCodes::kOpenPathFailed));
     }
     return Result<void>::ok();
 }

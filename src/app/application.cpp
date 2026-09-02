@@ -78,9 +78,9 @@ Result<void> Application::initialize()
         QD_LOG_WARN(index_result.error());
     }
 
-    connect(&context_.app_indexer(), &AppIndexer::indexing_finished, tray_.get(),
+    connect(&context_.app_indexer(), &AppIndexer::user_indexing_finished, tray_.get(),
             &TrayManager::show_index_refresh_success);
-    connect(&context_.app_indexer(), &AppIndexer::indexing_failed, tray_.get(),
+    connect(&context_.app_indexer(), &AppIndexer::user_indexing_failed, tray_.get(),
             &TrayManager::show_index_refresh_failed);
 
     context_.clipboard_monitor().start();

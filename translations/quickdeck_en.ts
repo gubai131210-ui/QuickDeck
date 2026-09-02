@@ -217,8 +217,50 @@
         <translation>Indexed %1 applications</translation>
     </message>
     <message>
+        <source>No applications were indexed.</source>
+        <translation>No applications were indexed.</translation>
+    </message>
+    <message>
         <source>Could not refresh the application index.</source>
         <translation>Could not refresh the application index.</translation>
+    </message>
+</context>
+<context>
+    <name>UserMessages</name>
+    <message>
+        <source>The application file was not found.</source>
+        <translation>The application file was not found.</translation>
+    </message>
+    <message>
+        <source>The application could not be started.</source>
+        <translation>The application could not be started.</translation>
+    </message>
+    <message>
+        <source>The path could not be opened.</source>
+        <translation>The path could not be opened.</translation>
+    </message>
+    <message>
+        <source>The path does not exist.</source>
+        <translation>The path does not exist.</translation>
+    </message>
+    <message>
+        <source>Could not scan installed applications.</source>
+        <translation>Could not scan installed applications.</translation>
+    </message>
+    <message>
+        <source>Could not save the application index.</source>
+        <translation>Could not save the application index.</translation>
+    </message>
+</context>
+<context>
+    <name>QMessageBox</name>
+    <message>
+        <source>&amp;Yes</source>
+        <translation>&amp;Yes</translation>
+    </message>
+    <message>
+        <source>&amp;No</source>
+        <translation>&amp;No</translation>
     </message>
 </context>
 <context>

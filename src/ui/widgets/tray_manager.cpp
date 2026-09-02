@@ -1,5 +1,6 @@
 #include "ui/widgets/tray_manager.h"
 
+#include "core/user_messages.h"
 #include "ui/launcher_controller.h"
 #include "ui/widgets/settings_window.h"
 
@@ -71,30 +72,26 @@ void TrayManager::retranslate_ui()
 
 void TrayManager::show_launch_failed(const QString &app_name, const QString &error_message)
 {
+    const QString detail = UserMessages::is_error_code(error_message)
+                               ? UserMessages::translate_error(error_message)
+                               : error_message;
     tray_.showMessage(tr("Launch Failed"),
-                      tr("Could not launch %1: %2").arg(app_name, error_message),
+                      tr("Could not launch %1: %2").arg(app_name, detail),
                       QSystemTrayIcon::Warning,
                       5000);
 }
 
 void TrayManager::show_index_refresh_success(int app_count)
 {
-    if (app_count <= 0) {
-        return;
-    }
-    tray_.showMessage(tr("Index Refresh"),
-                      tr("Indexed %1 applications").arg(app_count),
-                      QSystemTrayIcon::Information,
-                      4000);
+    const QString body = app_count <= 0 ? tr("No applications were indexed.")
+                                        : tr("Indexed %1 applications").arg(app_count);
+    tray_.showMessage(tr("Index Refresh"), body, QSystemTrayIcon::Information, 4000);
 }
 
 void TrayManager::show_index_refresh_failed(const QString &error_code)
 {
-    Q_UNUSED(error_code)
-    tray_.showMessage(tr("Index Refresh"),
-                      tr("Could not refresh the application index."),
-                      QSystemTrayIcon::Warning,
-                      5000);
+    const QString detail = UserMessages::translate_error(error_code);
+    tray_.showMessage(tr("Index Refresh"), detail, QSystemTrayIcon::Warning, 5000);
 }
 
 } // namespace quickdeck

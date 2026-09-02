@@ -1,5 +1,6 @@
 #include "services/app_indexer.h"
 
+#include "core/user_messages.h"
 #include "services/app_scanner.h"
 #include "services/icon_cache.h"
 #include "services/logger.h"
@@ -92,15 +93,18 @@ Result<QList<AppEntry>> AppIndexer::scan_windows_apps()
     return Result<QList<AppEntry>>::ok(entries);
 }
 
-Result<int> AppIndexer::refresh_catalog()
+Result<int> AppIndexer::refresh_catalog(bool user_initiated)
 {
     emit indexing_started();
 
     const Result<QList<AppEntry>> scan_result = scan_windows_apps();
     if (scan_result.is_err()) {
         QD_LOG_WARN(scan_result.error());
-        emit indexing_failed(QStringLiteral("scan_failed"));
-        return Result<int>::fail(QStringLiteral("scan_failed"));
+        emit indexing_failed(QString::fromLatin1(ErrorCodes::kIndexScanFailed));
+        if (user_initiated) {
+            emit user_indexing_failed(QString::fromLatin1(ErrorCodes::kIndexScanFailed));
+        }
+        return Result<int>::fail(QString::fromLatin1(ErrorCodes::kIndexScanFailed));
     }
 
     QList<AppEntry> enriched;
@@ -116,16 +120,22 @@ Result<int> AppIndexer::refresh_catalog()
     const Result<void> upsert_result = apps_.upsert_batch(enriched);
     if (upsert_result.is_err()) {
         QD_LOG_WARN(upsert_result.error());
-        emit indexing_failed(QStringLiteral("upsert_failed"));
-        return Result<int>::fail(QStringLiteral("upsert_failed"));
+        emit indexing_failed(QString::fromLatin1(ErrorCodes::kIndexUpsertFailed));
+        if (user_initiated) {
+            emit user_indexing_failed(QString::fromLatin1(ErrorCodes::kIndexUpsertFailed));
+        }
+        return Result<int>::fail(QString::fromLatin1(ErrorCodes::kIndexUpsertFailed));
     }
 
     settings_.set_int(QStringLiteral("indexer.last_refresh_at"),
                       static_cast<int>(QDateTime::currentSecsSinceEpoch()));
 
-    const int count = scan_result.value().size();
+    const int count = enriched.size();
     QD_LOG_INFO(QStringLiteral("Indexed %1 applications").arg(count));
     emit indexing_finished(count);
+    if (user_initiated) {
+        emit user_indexing_finished(count);
+    }
     return Result<int>::ok(count);
 }
 

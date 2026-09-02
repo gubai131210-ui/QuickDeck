@@ -15,6 +15,7 @@ set(QUICKDECK_CORE_SOURCES
     src/app/application_context.cpp
     src/data/database_manager.cpp
     src/data/migration_runner.cpp
+    src/core/user_messages.cpp
     src/data/repositories/sqlite_app_repository.cpp
     src/data/repositories/sqlite_clipboard_repository.cpp
     src/data/repositories/sqlite_settings_store.cpp
@@ -46,6 +47,7 @@ set(QUICKDECK_CORE_HEADERS
     src/core/interfaces/i_platform_services.h
     src/core/interfaces/repositories.h
     src/core/result.h
+    src/core/user_messages.h
     src/data/database_manager.h
     src/data/migration_runner.h
     src/data/repositories/sqlite_app_repository.h
@@ -134,6 +136,17 @@ qt_add_resources(QuickDeck "quickdeck_icons"
     FILES
         resources/icons/quickdeck.svg
 )
+
+set(_quickdeck_qt_zh_cn_qm "${Qt6_DIR}/../../../translations/qt_zh_CN.qm")
+get_filename_component(_quickdeck_qt_zh_cn_qm "${_quickdeck_qt_zh_cn_qm}" REALPATH)
+if(EXISTS "${_quickdeck_qt_zh_cn_qm}")
+    set_source_files_properties("${_quickdeck_qt_zh_cn_qm}"
+        PROPERTIES QT_RESOURCE_ALIAS "qt_zh_CN.qm")
+    qt_add_resources(QuickDeck "qt_zh_translations"
+        PREFIX "/qt/i18n"
+        FILES "${_quickdeck_qt_zh_cn_qm}"
+    )
+endif()
 
 qt_add_translations(QuickDeck
     TS_FILES

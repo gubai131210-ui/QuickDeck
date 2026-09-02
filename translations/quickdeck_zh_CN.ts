@@ -217,8 +217,50 @@
         <translation>已索引 %1 个应用</translation>
     </message>
     <message>
+        <source>No applications were indexed.</source>
+        <translation>未索引到任何应用。</translation>
+    </message>
+    <message>
         <source>Could not refresh the application index.</source>
         <translation>无法刷新应用索引。</translation>
+    </message>
+</context>
+<context>
+    <name>UserMessages</name>
+    <message>
+        <source>The application file was not found.</source>
+        <translation>找不到应用程序文件。</translation>
+    </message>
+    <message>
+        <source>The application could not be started.</source>
+        <translation>无法启动应用程序。</translation>
+    </message>
+    <message>
+        <source>The path could not be opened.</source>
+        <translation>无法打开该路径。</translation>
+    </message>
+    <message>
+        <source>The path does not exist.</source>
+        <translation>路径不存在。</translation>
+    </message>
+    <message>
+        <source>Could not scan installed applications.</source>
+        <translation>无法扫描已安装的应用。</translation>
+    </message>
+    <message>
+        <source>Could not save the application index.</source>
+        <translation>无法保存应用索引。</translation>
+    </message>
+</context>
+<context>
+    <name>QMessageBox</name>
+    <message>
+        <source>&amp;Yes</source>
+        <translation>是(&amp;Y)</translation>
+    </message>
+    <message>
+        <source>&amp;No</source>
+        <translation>否(&amp;N)</translation>
     </message>
 </context>
 <context>

@@ -119,6 +119,9 @@ Result<void> LocaleService::install_translators(const QString &language_code)
                qt_translator_->load(QStringLiteral("qt_zh_CN"),
                                     QLibraryInfo::path(QLibraryInfo::TranslationsPath))) {
         QCoreApplication::installTranslator(qt_translator_.get());
+    } else if (language_code == QStringLiteral("zh_CN") &&
+               qt_translator_->load(QStringLiteral(":/qt/i18n/qt_zh_CN.qm"))) {
+        QCoreApplication::installTranslator(qt_translator_.get());
     }
 
     return Result<void>::ok();

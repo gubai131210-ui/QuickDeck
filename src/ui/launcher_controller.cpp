@@ -142,17 +142,48 @@ void LauncherController::move_selection(int delta)
 
 void LauncherController::toggle_pin_at(int index)
 {
-    if (mode_ != LauncherMode::Search || index < 0 || index >= app_results_.size()) {
+    if (mode_ == LauncherMode::Search) {
+        if (index < 0 || index >= app_results_.size()) {
+            return;
+        }
+
+        const AppEntry &entry = app_results_.at(index);
+        if (entry.id <= 0) {
+            return;
+        }
+
+        const Result<void> pin_result =
+            context_.database().apps().set_pinned(entry.id, !entry.is_pinned);
+        if (pin_result.is_err()) {
+            QD_LOG_WARN(pin_result.error());
+            return;
+        }
+
+        const qint64 entry_id = entry.id;
+        refresh_results();
+
+        int restored_index = 0;
+        for (int i = 0; i < app_results_.size(); ++i) {
+            if (app_results_.at(i).id == entry_id) {
+                restored_index = i;
+                break;
+            }
+        }
+        set_selected_index(restored_index);
         return;
     }
 
-    const AppEntry &entry = app_results_.at(index);
+    if (index < 0 || index >= clipboard_results_.size()) {
+        return;
+    }
+
+    const ClipboardEntry &entry = clipboard_results_.at(index);
     if (entry.id <= 0) {
         return;
     }
 
     const Result<void> pin_result =
-        context_.database().apps().set_pinned(entry.id, !entry.is_pinned);
+        context_.database().clipboard().set_pinned(entry.id, !entry.is_pinned);
     if (pin_result.is_err()) {
         QD_LOG_WARN(pin_result.error());
         return;
@@ -162,8 +193,8 @@ void LauncherController::toggle_pin_at(int index)
     refresh_results();
 
     int restored_index = 0;
-    for (int i = 0; i < app_results_.size(); ++i) {
-        if (app_results_.at(i).id == entry_id) {
+    for (int i = 0; i < clipboard_results_.size(); ++i) {
+        if (clipboard_results_.at(i).id == entry_id) {
             restored_index = i;
             break;
         }

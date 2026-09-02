@@ -1,5 +1,7 @@
 #include "services/search_service.h"
 
+#include "core/user_messages.h"
+
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
@@ -31,8 +33,7 @@ Result<QString> PathResolver::resolve(const QString &input)
     }
     path = QDir::cleanPath(path);
     if (!QFileInfo::exists(path)) {
-        return Result<QString>::fail(
-            QStringLiteral("Path does not exist: %1").arg(path));
+        return Result<QString>::fail(QString::fromLatin1(ErrorCodes::kPathNotFound));
     }
     return Result<QString>::ok(path);
 }
