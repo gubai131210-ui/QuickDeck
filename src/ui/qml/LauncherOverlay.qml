@@ -1,0 +1,81 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+Window {
+    id: root
+    width: 640
+    height: 420
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+    color: "transparent"
+    visible: launcher.visible
+    x: (Screen.width - width) / 2
+    y: Screen.height * 0.2
+
+    Rectangle {
+        anchors.fill: parent
+        radius: 12
+        color: Qt.rgba(0.12, 0.12, 0.12, 0.88)
+        border.color: Qt.rgba(1, 1, 1, 0.08)
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            TextField {
+                id: searchField
+                Layout.fillWidth: true
+                placeholderText: launcher.modeValue === 0 ? qsTr("Search apps or paste a path...") : qsTr("Filter clipboard history...")
+                text: launcher.query
+                onTextChanged: launcher.query = text
+                Component.onCompleted: forceActiveFocus()
+            }
+
+            Label {
+                text: launcher.modeValue === 0 ? qsTr("Applications") : qsTr("Clipboard")
+                color: "#cccccc"
+            }
+
+            ListView {
+                id: resultList
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: launcher.modeValue === 0 ? launcher.appModel : launcher.clipboardModel
+                delegate: ItemDelegate {
+                    width: resultList.width
+                    contentItem: Column {
+                        spacing: 2
+                        Label {
+                            text: launcher.modeValue === 0 ? model.name : model.preview
+                            color: "white"
+                            elide: Text.ElideRight
+                            width: parent.width
+                        }
+                        Label {
+                            visible: launcher.modeValue === 0
+                            text: model.path
+                            color: "#888888"
+                            font.pixelSize: 11
+                            elide: Text.ElideMiddle
+                            width: parent.width
+                        }
+                    }
+                    onClicked: resultList.currentIndex = index
+                }
+                Keys.onReturnPressed: launcher.activate_selected(currentIndex)
+            }
+        }
+    }
+
+    Connections {
+        target: launcher
+        function onVisibleChanged() {
+            if (launcher.visible) {
+                searchField.text = launcher.query
+                searchField.forceActiveFocus()
+            }
+        }
+    }
+}
