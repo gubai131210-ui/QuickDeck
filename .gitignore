@@ -24,10 +24,11 @@ compile_commands.json
 *.o
 *.obj
 
-# Local data
+# Local database artifacts
 *.db
 *.db-*
-icons/
+
+# Runtime cache under AppData — not applicable in repo
 
 # OS
 .DS_Store
