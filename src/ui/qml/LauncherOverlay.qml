@@ -54,11 +54,11 @@ Window {
 
                     Keys.onUpPressed: function(event) {
                         event.accepted = true
-                        launcher.moveSelection(-1)
+                        launcher.move_selection(-1)
                     }
                     Keys.onDownPressed: function(event) {
                         event.accepted = true
-                        launcher.moveSelection(1)
+                        launcher.move_selection(1)
                     }
                     Keys.onReturnPressed: launcher.activate_selected(launcher.selectedIndex)
                     Keys.onEscapePressed: launcher.dismiss()
@@ -154,7 +154,7 @@ Window {
         id: hideTimer
         interval: 150
         repeat: false
-        onTriggered: launcher.confirmHide()
+        onTriggered: launcher.confirm_hide()
     }
 
     onActiveChanged: {
