@@ -283,7 +283,7 @@ void LauncherController::activate_selected(int index)
     if (simulate_paste.is_ok() && simulate_paste.value()) {
         const Result<void> paste_result = context_.platform().simulate_paste();
         if (paste_result.is_err()) {
-            emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteSimulateFailed));
+            emit quickPasteFailed(QString::fromLatin1(ErrorCodes::kPasteSimulateFailed));
         }
     }
 
@@ -295,7 +295,7 @@ void LauncherController::quick_paste_latest()
     const Result<QList<ClipboardEntry>> recent =
         context_.database().clipboard().list_recent(1, 0);
     if (recent.is_err() || recent.value().isEmpty()) {
-        emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteNoEntries));
+        emit quickPasteFailed(QString::fromLatin1(ErrorCodes::kPasteNoEntries));
         return;
     }
 
@@ -305,7 +305,7 @@ void LauncherController::quick_paste_latest()
 
     const Result<void> paste_result = context_.platform().simulate_paste();
     if (paste_result.is_err()) {
-        emit quickPasteFailed(QStringLiteral(ErrorCodes::kPasteSimulateFailed));
+        emit quickPasteFailed(QString::fromLatin1(ErrorCodes::kPasteSimulateFailed));
     }
 }
 
