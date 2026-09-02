@@ -13,8 +13,6 @@ namespace quickdeck {
 class SettingsController;
 class LocaleService;
 
-class QQmlApplicationEngine;
-
 class LauncherController : public QObject {
     Q_OBJECT
     Q_PROPERTY(int modeValue READ mode_value NOTIFY modeChanged)

@@ -2,14 +2,15 @@
 
 #include "app/application_context.h"
 #include "services/locale_service.h"
-#include "ui/launcher_controller.h"
-#include "ui/settings_controller.h"
-#include "ui/widgets/tray_manager.h"
 
 #include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
 #include <memory>
+
+#include "ui/launcher_controller.h"
+#include "ui/settings_controller.h"
+#include "ui/widgets/tray_manager.h"
 
 namespace quickdeck {
 
