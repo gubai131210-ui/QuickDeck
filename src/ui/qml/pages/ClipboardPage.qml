@@ -24,28 +24,44 @@ Item {
 
         Component.onCompleted: fadeIn.restart()
 
-        delegate: ResultRow {
-            title: model.preview
-            subtitle: ""
-            iconSource: ""
-            isPinned: model.isPinned
-            actionHint: qsTr("Enter · Ctrl+Enter paste")
-            highlighted: ListView.isCurrentItem
-            onClicked: resultListView.currentIndex = index
-
+        delegate: Item {
+            id: rowHost
+            width: resultListView.width
+            height: 56
             opacity: 0
-            transform: Translate { y: 8 }
+            property real slideOffset: 8
+            y: slideOffset
 
-            SequentialAnimation on opacity {
-                running: true
-                PauseAnimation { duration: Math.min(index * 24, 240) }
-                NumberAnimation { to: 1; duration: QuickDeckTheme.animFast; easing.type: Easing.OutCubic }
+            ResultRow {
+                anchors.fill: parent
+                title: model.preview
+                subtitle: ""
+                iconSource: ""
+                isPinned: model.isPinned
+                actionHint: qsTr("Enter · Ctrl+Enter paste")
+                highlighted: ListView.isCurrentItem
+                onClicked: resultListView.currentIndex = index
             }
 
-            SequentialAnimation on transform.y {
+            SequentialAnimation {
                 running: true
                 PauseAnimation { duration: Math.min(index * 24, 240) }
-                NumberAnimation { to: 0; duration: QuickDeckTheme.animFast; easing.type: Easing.OutCubic }
+                ParallelAnimation {
+                    NumberAnimation {
+                        target: rowHost
+                        property: "opacity"
+                        to: 1
+                        duration: QuickDeckTheme.animFast
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        target: rowHost
+                        property: "slideOffset"
+                        to: 0
+                        duration: QuickDeckTheme.animFast
+                        easing.type: Easing.OutCubic
+                    }
+                }
             }
         }
 

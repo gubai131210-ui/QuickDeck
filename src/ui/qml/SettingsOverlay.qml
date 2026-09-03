@@ -15,13 +15,19 @@ Window {
     y: (Screen.height - height) / 2
 
     opacity: settings.visible ? 1.0 : 0.0
-    scale: settings.visible ? 1.0 : 0.96
 
     Behavior on opacity { NumberAnimation { duration: QuickDeckTheme.animNormal } }
-    Behavior on scale { NumberAnimation { duration: QuickDeckTheme.animNormal; easing.type: Easing.OutBack } }
 
-    GlassPanel {
+    Item {
+        id: chromeRoot
         anchors.fill: parent
+        scale: settings.visible ? 1.0 : 0.96
+        transformOrigin: Item.Center
+
+        Behavior on scale { NumberAnimation { duration: QuickDeckTheme.animNormal; easing.type: Easing.OutBack } }
+
+        GlassPanel {
+            anchors.fill: parent
 
         ColumnLayout {
             anchors.fill: parent
@@ -212,6 +218,7 @@ Window {
                 }
             }
         }
+    }
     }
 
     Shortcut {

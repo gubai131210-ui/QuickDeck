@@ -27,28 +27,44 @@ Item {
 
         model: launcher.commandMode ? launcher.commandModel : launcher.appModel
 
-        delegate: ResultRow {
-            title: launcher.commandMode ? model.title : model.name
-            subtitle: launcher.commandMode ? model.subtitle : model.subtitle
-            iconSource: launcher.commandMode ? "" : model.iconPath
-            isPinned: launcher.commandMode ? false : model.isPinned
-            actionHint: launcher.commandMode ? model.actionHint : qsTr("Enter")
-            highlighted: ListView.isCurrentItem
-            onClicked: resultListView.currentIndex = index
-
+        delegate: Item {
+            id: rowHost
+            width: resultListView.width
+            height: 56
             opacity: 0
-            transform: Translate { y: 8 }
+            property real slideOffset: 8
+            y: slideOffset
 
-            SequentialAnimation on opacity {
-                running: true
-                PauseAnimation { duration: Math.min(index * 24, 240) }
-                NumberAnimation { to: 1; duration: QuickDeckTheme.animFast; easing.type: Easing.OutCubic }
+            ResultRow {
+                anchors.fill: parent
+                title: launcher.commandMode ? model.title : model.name
+                subtitle: launcher.commandMode ? model.subtitle : model.subtitle
+                iconSource: launcher.commandMode ? "" : model.iconPath
+                isPinned: launcher.commandMode ? false : model.isPinned
+                actionHint: launcher.commandMode ? model.actionHint : qsTr("Enter")
+                highlighted: ListView.isCurrentItem
+                onClicked: resultListView.currentIndex = index
             }
 
-            SequentialAnimation on transform.y {
+            SequentialAnimation {
                 running: true
                 PauseAnimation { duration: Math.min(index * 24, 240) }
-                NumberAnimation { to: 0; duration: QuickDeckTheme.animFast; easing.type: Easing.OutCubic }
+                ParallelAnimation {
+                    NumberAnimation {
+                        target: rowHost
+                        property: "opacity"
+                        to: 1
+                        duration: QuickDeckTheme.animFast
+                        easing.type: Easing.OutCubic
+                    }
+                    NumberAnimation {
+                        target: rowHost
+                        property: "slideOffset"
+                        to: 0
+                        duration: QuickDeckTheme.animFast
+                        easing.type: Easing.OutCubic
+                    }
+                }
             }
         }
 
