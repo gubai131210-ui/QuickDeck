@@ -24,39 +24,41 @@ Item {
 
         Component.onCompleted: fadeIn.restart()
 
-        delegate: Item {
-            id: rowHost
+        delegate: ResultRow {
+            id: row
+            required property int index
+            required property var model
             width: resultListView.width
-            height: 56
+            title: model.preview ?? ""
+            subtitle: ""
+            iconSource: ""
+            isPinned: model.isPinned ?? false
+            actionHint: qsTr("Enter · Ctrl+Enter paste")
+            highlighted: resultListView.currentIndex === index
             opacity: 0
-            property real slideOffset: 8
-            y: slideOffset
+            onClicked: resultListView.currentIndex = index
 
-            ResultRow {
-                anchors.fill: parent
-                title: model.preview
-                subtitle: ""
-                iconSource: ""
-                isPinned: model.isPinned
-                actionHint: qsTr("Enter · Ctrl+Enter paste")
-                highlighted: ListView.isCurrentItem
-                onClicked: resultListView.currentIndex = index
+            transform: Translate {
+                id: slide
+                y: 8
             }
 
             SequentialAnimation {
                 running: true
-                PauseAnimation { duration: Math.min(index * 24, 240) }
+                PauseAnimation {
+                    duration: Math.min(Math.max(row.index, 0) * 24, 240)
+                }
                 ParallelAnimation {
                     NumberAnimation {
-                        target: rowHost
+                        target: row
                         property: "opacity"
                         to: 1
                         duration: QuickDeckTheme.animFast
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
-                        target: rowHost
-                        property: "slideOffset"
+                        target: slide
+                        property: "y"
                         to: 0
                         duration: QuickDeckTheme.animFast
                         easing.type: Easing.OutCubic

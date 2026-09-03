@@ -1,27 +1,26 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import QuickDeckLauncher
 
 ItemDelegate {
     id: root
-    width: ListView.view ? ListView.view.width : implicitWidth
     height: 56
     padding: 12
 
     background: Rectangle {
         radius: QuickDeckTheme.radiusControl
         color: root.highlighted ? QuickDeckTheme.highlight
-                                  : (root.hovered ? "#1438BDF8" : "transparent")
+                                  : (root.hovered ? QuickDeckTheme.highlight : "transparent")
         Behavior on color { ColorAnimation { duration: QuickDeckTheme.animFast } }
     }
 
-    contentItem: Row {
+    contentItem: RowLayout {
         spacing: QuickDeckTheme.spaceSm
 
         Item {
-            width: 34
-            height: 34
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.preferredWidth: 34
+            Layout.preferredHeight: 34
 
             Image {
                 id: iconImage
@@ -48,14 +47,13 @@ ItemDelegate {
             }
         }
 
-        Column {
+        ColumnLayout {
+            Layout.fillWidth: true
             spacing: 2
-            anchors.verticalCenter: parent.verticalCenter
-            width: parent.width - 46 - (pinBadge.visible ? 22 : 0) - (actionHintLabel.visible ? 72 : 0)
 
             Label {
                 id: titleLabel
-                width: parent.width
+                Layout.fillWidth: true
                 text: root.title
                 color: QuickDeckTheme.textPrimary
                 font.pixelSize: 14
@@ -63,7 +61,7 @@ ItemDelegate {
             }
 
             Label {
-                width: parent.width
+                Layout.fillWidth: true
                 visible: root.subtitle.length > 0
                 text: root.subtitle
                 color: QuickDeckTheme.textSecondary
@@ -74,7 +72,6 @@ ItemDelegate {
 
         Label {
             id: actionHintLabel
-            anchors.verticalCenter: parent.verticalCenter
             visible: root.actionHint.length > 0
             text: root.actionHint
             color: QuickDeckTheme.textMuted
@@ -88,19 +85,17 @@ ItemDelegate {
 
         Label {
             id: pinBadge
-            anchors.verticalCenter: parent.verticalCenter
             visible: root.isPinned
             text: "★"
             color: QuickDeckTheme.primary
             font.pixelSize: 14
-            ToolTip.visible: pinBadgeHover.hovered
-            ToolTip.text: qsTr("Pinned")
 
-            MouseArea {
-                id: pinBadgeHover
-                anchors.fill: parent
-                hoverEnabled: true
+            HoverHandler {
+                id: pinHover
             }
+
+            ToolTip.visible: pinHover.hovered
+            ToolTip.text: qsTr("Pinned")
         }
     }
 

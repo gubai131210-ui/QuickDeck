@@ -12,8 +12,7 @@ Item {
         spacing: 6
         currentIndex: launcher.selectedIndex
         onCurrentIndexChanged: launcher.selectedIndex = currentIndex
-
-        property string listKey: launcher.commandMode ? "command" : "app"
+        model: launcher.commandMode ? launcher.commandModel : launcher.appModel
 
         NumberAnimation on opacity {
             id: fadeIn
@@ -23,43 +22,44 @@ Item {
             easing.type: Easing.OutCubic
         }
 
+        property string listKey: launcher.commandMode ? "command" : "app"
         onListKeyChanged: fadeIn.restart()
 
-        model: launcher.commandMode ? launcher.commandModel : launcher.appModel
-
-        delegate: Item {
-            id: rowHost
+        delegate: ResultRow {
+            id: row
+            required property int index
+            required property var model
             width: resultListView.width
-            height: 56
+            title: launcher.commandMode ? (model.title ?? "") : (model.name ?? "")
+            subtitle: model.subtitle ?? ""
+            iconSource: launcher.commandMode ? "" : (model.iconPath ?? "")
+            isPinned: launcher.commandMode ? false : (model.isPinned ?? false)
+            actionHint: launcher.commandMode ? (model.actionHint ?? "") : qsTr("Enter")
+            highlighted: resultListView.currentIndex === index
             opacity: 0
-            property real slideOffset: 8
-            y: slideOffset
+            onClicked: resultListView.currentIndex = index
 
-            ResultRow {
-                anchors.fill: parent
-                title: launcher.commandMode ? model.title : model.name
-                subtitle: launcher.commandMode ? model.subtitle : model.subtitle
-                iconSource: launcher.commandMode ? "" : model.iconPath
-                isPinned: launcher.commandMode ? false : model.isPinned
-                actionHint: launcher.commandMode ? model.actionHint : qsTr("Enter")
-                highlighted: ListView.isCurrentItem
-                onClicked: resultListView.currentIndex = index
+            transform: Translate {
+                id: slide
+                y: 8
             }
 
             SequentialAnimation {
                 running: true
-                PauseAnimation { duration: Math.min(index * 24, 240) }
+                PauseAnimation {
+                    duration: Math.min(Math.max(row.index, 0) * 24, 240)
+                }
                 ParallelAnimation {
                     NumberAnimation {
-                        target: rowHost
+                        target: row
                         property: "opacity"
                         to: 1
                         duration: QuickDeckTheme.animFast
                         easing.type: Easing.OutCubic
                     }
                     NumberAnimation {
-                        target: rowHost
-                        property: "slideOffset"
+                        target: slide
+                        property: "y"
                         to: 0
                         duration: QuickDeckTheme.animFast
                         easing.type: Easing.OutCubic
